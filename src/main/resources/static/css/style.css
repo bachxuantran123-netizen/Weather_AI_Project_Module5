@@ -1,0 +1,272 @@
+
+    /* =========================================
+       THIẾT LẬP CƠ BẢN (Từ mã nguồn gốc)
+       ========================================= */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(rgba(11, 12, 16, 0.65), rgba(11, 12, 16, 0.85)),
+    url('https://images.unsplash.com/photo-1527482797697-8795b05a13fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    color: #e2e8f0;
+}
+
+.font-tech {
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* =========================================
+   HIỆU ỨNG GLOWING BLOBS (ĐỐM SÁNG ĐA SẮC)
+   ========================================= */
+.color-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px); /* Làm nhòe tạo hiệu ứng ánh sáng */
+    z-index: -1;
+    animation: floatBlob 10s infinite alternate ease-in-out;
+    pointer-events: none;
+}
+
+.blob-1 {
+    width: 400px; height: 400px;
+    background: #4facfe; /* Xanh nước biển (Lũ lụt) */
+    top: -5%; left: -5%;
+}
+
+.blob-2 {
+    width: 350px; height: 350px;
+    background: #f093fb; /* Tím AI */
+    bottom: -15%; right: -5%;
+    animation-delay: -3s;
+}
+
+.blob-3 {
+    width: 300px; height: 300px;
+    background: #ff512f; /* Cam đỏ (Cảnh báo sạt lở) */
+    top: 40%; left: 60%;
+    animation-delay: -5s;
+}
+
+@keyframes floatBlob {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, 50px) scale(1.2); }
+}
+
+/* =========================================
+   GLASSMORPHISM CARD (KHUNG KÍNH MỜ)
+   ========================================= */
+.glass-card {
+    background: rgba(255, 255, 255, 0.05); /* Rất trong suốt */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.3); /* Viền trên sáng hơn tạo độ nổi */
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 242, 254, 0.4);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* Vòng tròn bao quanh icon Logo */
+.logo-icon-wrapper {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* =========================================
+   CUSTOM INPUT FIELD (Ô NHẬP LIỆU)
+   ========================================= */
+.custom-input-group {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.custom-input-group:focus-within {
+    border-color: #00f2fe; /* Sáng màu viền khi click vào */
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.form-control, .form-select {
+    background: transparent !important;
+    border: none;
+    color: white !important;
+    padding: 12px 14px;
+    box-shadow: none !important;
+    font-size: 0.95rem;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.form-select option {
+    background-color: #0b0c10;
+    color: white;
+}
+
+/* Sửa lỗi màu nền trắng của trình duyệt khi Autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #1a1e29 inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* =========================================
+   NÚT BẤM GRADIENT & LINK
+   ========================================= */
+.btn-gradient {
+    background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    transition: all 0.4s ease;
+    background-size: 200% auto;
+    padding: 12px 24px;
+    font-weight: 600;
+}
+
+.btn-gradient:hover {
+    background-position: right center; /* Hiệu ứng chuyển màu gradient khi hover */
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 242, 254, 0.4) !important;
+}
+
+.btn-warning-gradient {
+    background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.4s ease;
+    box-shadow: 0 8px 25px rgba(255, 81, 47, 0.3);
+}
+
+.btn-warning-gradient:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(255, 81, 47, 0.6);
+}
+
+.btn-ai-gradient {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.4s ease;
+}
+
+.btn-ai-gradient:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(240, 147, 251, 0.6);
+}
+
+.forgot-link {
+    color: #00f2fe;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.forgot-link:hover, .register-link:hover {
+    color: #fff;
+    text-shadow: 0 0 8px rgba(0, 242, 254, 0.8);
+}
+
+.register-link {
+    color: #f093fb;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+/* =========================================
+   THÀNH PHẦN MỞ RỘNG BOOTSTRAP TÙY CHỈNH
+   ========================================= */
+.glass-navbar {
+    background: rgba(11, 12, 16, 0.55);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.text-cyan { color: #00f2fe; }
+.text-purple { color: #f093fb; }
+.text-amber { color: #ffc107; }
+
+/* Tinh chỉnh hệ thống tab Bootstrap Nav-pills */
+.nav-pills .nav-link {
+    color: #adb5bd;
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link.active {
+    background: rgba(255, 81, 47, 0.2) !important;
+    border: 1px solid rgba(255, 81, 47, 0.4);
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(255, 81, 47, 0.2);
+}
+
+/* Marquee Ticker */
+.marquee-wrapper {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+}
+.marquee-content {
+    display: inline-block;
+    animation: marquee 25s linear infinite;
+}
+@keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Radar Scanner overlay */
+.radar-sweep {
+    position: absolute;
+    width: 100%; height: 100%; top: 0; left: 0;
+    background: conic-gradient(from 0deg at 50% 50%, rgba(0, 242, 254, 0.2) 0deg, transparent 60deg, transparent 360deg);
+    border-radius: 50%;
+    animation: sweep 4s infinite linear;
+    pointer-events: none;
+}
+@keyframes sweep {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Badge Glow */
+.badge-glow-red { background: rgba(255, 81, 47, 0.15); border: 1px solid #ff512f; color: #ff512f; }
+.badge-glow-blue { background: rgba(0, 242, 254, 0.15); border: 1px solid #00f2fe; color: #00f2fe; }
+.badge-glow-purple { background: rgba(240, 147, 251, 0.15); border: 1px solid #f093fb; color: #f093fb; }
