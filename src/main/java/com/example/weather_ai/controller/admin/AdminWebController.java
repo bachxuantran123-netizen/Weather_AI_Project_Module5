@@ -1,4 +1,4 @@
-package com.example.weather_ai.controller;
+package com.example.weather_ai.controller.admin;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,6 +10,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/admin")
 public class AdminWebController {
+
 
     // Mở Link Này Để Chạy Nhé AE http://localhost:8080/admin/dashboard
     @GetMapping("/dashboard")

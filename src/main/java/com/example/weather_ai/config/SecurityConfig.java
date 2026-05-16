@@ -1,48 +1,62 @@
 package com.example.weather_ai.config;
 
-import com.example.weather_ai.entity.User;
+import com.example.weather_ai.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**", "/admin/login").permitAll()
-                        .anyRequest()
-                        .authenticated())
-                .formLogin(form -> form
-                        .loginPage("/admin/login")
-                        .loginProcessingUrl("/admin/login")
-                        .usernameParameter("email")
-                        .passwordParameter("password")
-                        .failureUrl("/admin/login?error")
-                        .permitAll()
-                        .defaultSuccessUrl("/admin/dashboard")
-                ).logout(logout -> logout
-                        .logoutUrl("/admin/logout")
-                        .permitAll()
-                        .logoutSuccessUrl("/admin/login"));
-        return http.build();
-    }
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+
+    private final CustomUserDetailsService customUserDetailsService;
+
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Bean
-    UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails user = new User("admin@gmail.com", passwordEncoder.encode("123456"), "admin", "admin");
-        return new InMemoryUserDetailsManager(user);
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/css/**", "/js/**", "/auth/login", "/auth/register", "/error").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/login")
+                        .usernameParameter("phoneNumber")
+                        .passwordParameter("password")
+                        .failureUrl("/auth/login?error=true")
+                        .permitAll()
+                        .defaultSuccessUrl("/users", true)
+                )
+                .rememberMe(remember -> remember
+                        .key("superSecretKeyForWeatherApp")
+                        .tokenValiditySeconds(7 * 24 * 60 * 60)
+                        .rememberMeParameter("rememberMe")
+                        .userDetailsService(customUserDetailsService)
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .permitAll()
+                        .logoutSuccessUrl("/auth/login")
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedPage("/auth/login?error=denied")
+                );
+
+        http.csrf(csrf -> csrf.disable());
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

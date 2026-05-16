@@ -1,0 +1,84 @@
+.form-floating > label {
+    padding-left: 2.8rem !important;
+}
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    z-index: 10;
+    color: #64748b;
+}
+
+.btn-register {
+    width: 100%;
+    padding: 0.85rem;
+    border-radius: 0.8rem;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    background: #1e293b;
+    border: none;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    color: white;
+}
+
+.btn-register:hover {
+    background: #0f172a;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.login-link a {
+    text-decoration: none;
+    font-weight: 600;
+    color: #1e293b;
+    transition: color 0.2s;
+}
+
+.login-link a:hover {
+    color: #c44536;
+}
+
+.alerts-mini-register {
+    background: #f0f9ff;
+    border-left: 4px solid #0ea5e9;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    color: #075985;
+    margin: 1.2rem 0 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-row-inline {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+}
+
+.password-requirements {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.3rem;
+    padding-left: 0.5rem;
+}
+
+.password-requirements i {
+    font-size: 0.6rem;
+}
+
+@media (max-width: 480px) {
+    .form-row-inline {
+        grid-template-columns: 1fr;
+    }
+}

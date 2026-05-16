@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeaVie - Đăng ký tài khoản</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/auth/login.css">
+    <link rel="stylesheet" href="/css/auth/register.css">
+    <style>
+        .btn-register { width: 100%; padding: 0.85rem; border-radius: 0.8rem; font-weight: 600; font-size: 1rem; letter-spacing: 0.3px; background: #1e293b; border: none; transition: all 0.2s; margin-top: 0.5rem; color: white; }
+        .btn-register:hover { background: #0f172a; transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .login-link { text-align: center; margin-top: 0.5rem; }
+        .login-link a { text-decoration: none; font-weight: 600; color: #1e293b; transition: color 0.2s; }
+        .login-link a:hover { color: #c44536; }
+        .alerts-mini-register { background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 0.6rem 0.9rem; border-radius: 0.5rem; font-size: 0.8rem; color: #075985; margin: 1.2rem 0 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .form-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+        .password-requirements { font-size: 0.7rem; color: #64748b; margin-top: 0.3rem; padding-left: 0.5rem; }
+        .password-requirements i { font-size: 0.6rem; }
+        @media (max-width: 480px) { .form-row-inline { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <div class="weather-scene">
+        <div class="clouds">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="cloud cloud3"></div>
+        </div>
+        <div class="rain-container" id="rainContainer"></div>
+        <div class="lightning">
+            <div class="flash"></div>
+        </div>
+        <div class="warning-overlay">
+            <i class="bi bi-cloud-lightning-rain icon-warning"></i>
+            <h2>Đăng Ký Cảnh Báo</h2>
+            <span class="badge-custom" style="background: rgba(14, 165, 233, 0.9);">
+                <i class="bi bi-person-plus-fill"></i> TẠO TÀI KHOẢN MỚI
+            </span>
+            <div class="evacuation-text mt-3">
+                <i class="bi bi-bell-fill"></i> Nhận thông báo sớm <br>
+                <small class="opacity-75">Kết nối với trung tâm ứng phó thiên tai 24/7</small>
+            </div>
+        </div>
+    </div>
+    <div class="form-section">
+        <div class="form-card">
+            <div class="brand-header">
+                <i class="bi bi-shield-check"></i>
+                <h3>WeaVie</h3>
+                <p>Đăng ký nhận cảnh báo thiên tai</p>
+            </div>
+            <div th:if="${error}" class="alert alert-danger py-2 text-center" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success py-2 text-center" th:text="${success}"></div>
+
+            <form th:action="@{/auth/register}" method="post" id="registerForm" th:object="${register}">
+                <div class="form-row-inline">
+                    <div>
+                        <div class="form-floating position-relative mb-1">
+                            <i class="bi bi-person-fill input-icon"></i>
+                            <input type="text" class="form-control" id="firstName" th:field="*{firstName}" placeholder="Họ" style="padding-left: 2.8rem;" required maxlength="50">
+                            <label for="firstName">Họ</label>
+                        </div>
+                        <div th:if="${#fields.hasErrors('firstName')}" class="text-danger small mb-2 ps-2" style="font-size: 0.7rem;" th:errors="*{firstName}"></div>
+                        <div th:unless="${#fields.hasErrors('firstName')}" class="mb-2"></div>
+                    </div>
+                    <div>
+                        <div class="form-floating position-relative mb-1">
+                            <i class="bi bi-person-fill input-icon"></i>
+                            <input type="text" class="form-control" id="lastName" th:field="*{lastName}" placeholder="Tên" style="padding-left: 2.8rem;" required maxlength="50">
+                            <label for="lastName">Tên</label>
+                        </div>
+                        <div th:if="${#fields.hasErrors('lastName')}" class="text-danger small mb-2 ps-2" style="font-size: 0.7rem;" th:errors="*{lastName}"></div>
+                        <div th:unless="${#fields.hasErrors('lastName')}" class="mb-2"></div>
+                    </div>
+                </div>
+                <div class="form-floating position-relative mb-1">
+                    <i class="bi bi-envelope-fill input-icon"></i>
+                    <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="nguyenvana@email.com" style="padding-left: 2.8rem;" required>
+                    <label for="email">Email</label>
+                </div>
+                <div th:if="${#fields.hasErrors('email')}" class="text-danger small mb-2 ps-2" th:errors="*{email}"></div>
+                <div th:unless="${#fields.hasErrors('email')}" class="mb-2"></div>
+                <div class="form-floating position-relative mb-1">
+                    <i class="bi bi-telephone-fill input-icon"></i>
+                    <input type="tel" class="form-control" id="phoneNumber" th:field="*{phoneNumber}" placeholder="0912345678"  style="padding-left: 2.8rem;" required>
+                    <label for="phoneNumber">Số điện thoại</label>
+                </div>
+                <div th:if="${#fields.hasErrors('phoneNumber')}" class="text-danger small mb-2 ps-2" th:errors="*{phoneNumber}"></div>
+                <div th:unless="${#fields.hasErrors('phoneNumber')}" class="mb-2"></div>
+                <small class="text-muted d-block mb-3 ps-2" style="font-size: 0.7rem;">
+                    <i class="bi bi-info-circle"></i> Ví dụ: 0912345678 hoặc +84912345678
+                </small>
+                <div class="form-floating position-relative mb-1">
+                    <i class="bi bi-lock-fill input-icon"></i>
+                    <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="Mật khẩu" style="padding-left: 2.8rem;" required>
+                    <label for="password">Mật khẩu</label>
+                </div>
+                <div th:if="${#fields.hasErrors('password')}" class="text-danger small mb-2 ps-2" th:errors="*{password}"></div>
+                <div th:unless="${#fields.hasErrors('password')}" class="mb-2"></div>
+                <div class="password-requirements">
+                    <i class="bi bi-dot"></i> Ít nhất 8 ký tự<br>
+                    <i class="bi bi-dot"></i> Phải chứa ít nhất 1 chữ cái và 1 chữ số
+                </div>
+                <div class="form-floating position-relative mb-2 mt-3">
+                    <i class="bi bi-lock-fill input-icon"></i>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu" minlength="8" style="padding-left: 2.8rem;" required>
+                    <label for="confirmPassword">Xác nhận mật khẩu</label>
+                </div>
+                <div id="confirmPasswordError" class="text-danger small mb-2 ps-2" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i> Mật khẩu xác nhận không khớp!
+                </div>
+                <div class="form-check mb-3 mt-3">
+                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                    <label class="form-check-label small text-secondary" for="agreeTerms">
+                        Tôi đồng ý với <a href="#" class="text-decoration-none">Điều khoản sử dụng</a> và
+                        <a href="#" class="text-decoration-none">Chính sách bảo mật</a>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-register">
+                    <i class="bi bi-person-plus-fill me-2"></i>Đăng ký tài khoản
+                </button>
+            </form>
+            <div class="alerts-mini-register mt-3">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Thông tin của bạn được bảo mật và chỉ dùng để gửi cảnh báo thiên tai.</span>
+            </div>
+            <div class="divider">
+                <span>ĐÃ CÓ TÀI KHOẢN</span>
+            </div>
+            <div class="login-link">
+                <a th:href="@{/auth/login}" class="d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập ngay
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/auth/register.js"></script>
+</body>
+</html>
