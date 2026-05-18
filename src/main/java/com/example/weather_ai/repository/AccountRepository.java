@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     // Custom query: Giúp Service dễ dàng tìm người dùng lúc Đăng nhập
     Optional<Account> findByUsername(String username);
+    boolean existsByUsername(String username);
 }
