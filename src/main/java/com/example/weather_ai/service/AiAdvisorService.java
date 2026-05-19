@@ -1,7 +1,7 @@
 package com.example.weather_ai.service;
 
 import com.example.weather_ai.dto.WeatherApiResponse;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.example.weather_ai.dto.GeminiResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,7 +21,6 @@ public class AiAdvisorService {
             @Value("${ai.base-url}") String fullUrl,
             @Value("${ai.api-key}") String aiApiKey) {
 
-        // Tạo WebClient trống, không gán BaseURL mặc định để tránh xung đột
         this.webClient = WebClient.create();
         this.aiApiKey = aiApiKey.trim();
         this.fullUrl = fullUrl.trim();
@@ -29,7 +28,7 @@ public class AiAdvisorService {
 
     public Mono<String> getAdviceFromWeather(WeatherApiResponse.CurrentDto currentData) {
         String prompt = String.format(
-                "Thời tiết đang là %s, nhiệt độ %s độ C, chỉ số UV %s. Hãy khuyên 1 câu ngắn gọn nên mang đồ gì.",
+                "Thời tiết đang là %s, nhiệt độ %s độ C, chỉ số UV %s. Hãy đóng vai chuyên gia thời tiết khuyên 1 câu ngắn gọn (dưới 30 chữ) nên mang đồ gì ra đường.",
                 currentData.getCondition().getText(), currentData.getTempC(), currentData.getUv()
         );
 
@@ -37,18 +36,16 @@ public class AiAdvisorService {
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
         );
 
-        // Nối URL đầy đủ với API Key
-        String finalUrl = this.fullUrl + "?key=" + this.aiApiKey;
-
         return this.webClient.post()
-                .uri(finalUrl)
+                .uri(this.fullUrl)
+                .header("x-goog-api-key", this.aiApiKey)
                 .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
-                .bodyToMono(JsonNode.class)
-                .map(rootNode -> {
+                .bodyToMono(GeminiResponse.class) // Hứng bằng DTO chuẩn
+                .map(response -> {
                     try {
-                        return rootNode.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+                        return response.getCandidates().get(0).getContent().getParts().get(0).getText();
                     } catch (Exception e) {
                         return "Không thể phân tích phản hồi từ AI.";
                     }

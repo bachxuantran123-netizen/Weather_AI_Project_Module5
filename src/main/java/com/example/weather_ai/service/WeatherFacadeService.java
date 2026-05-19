@@ -12,26 +12,16 @@ public class WeatherFacadeService {
     private final WeatherService weatherService;
     private final AiAdvisorService aiAdvisorService;
 
-//    public Mono<WeatherAdviceResponse> getWeatherWithAdvice(String city) {
-//        return weatherService.getCurrentWeather(city) // Bước 1: Gọi API thời tiết
-//                .flatMap(weatherData ->
-//                        aiAdvisorService.getAdviceFromWeather(weatherData.getCurrent()) // Bước 2: Lấy dữ liệu đó gọi sang AI
-//                                .map(advice -> new WeatherAdviceResponse( // Bước 3: Trộn kết quả
-//                                        weatherData.getLocation().getName(),
-//                                        weatherData.getCurrent().getTempC(),
-//                                        weatherData.getCurrent().getCondition().getText(),
-//                                        advice
-//                                ))
-//                );
-//    }
-public Mono<WeatherAdviceResponse> getWeatherWithAdvice(String city) {
-    // TẠM THỜI TẮT AI ĐỂ TEST ĐỘC LẬP WEATHER API
-    return weatherService.getCurrentWeather(city)
-            .map(weatherData -> new WeatherAdviceResponse(
-                    weatherData.getLocation().getName(),
-                    weatherData.getCurrent().getTempC(),
-                    weatherData.getCurrent().getCondition().getText(),
-                    "Đây là lời khuyên giả (Mock) để test xem WeatherAPI có lọt qua không!"
-            ));
-}
+    public Mono<WeatherAdviceResponse> getWeatherWithAdvice(String city) {
+        return weatherService.getCurrentWeather(city) // Bước 1: Gọi API thời tiết
+                .flatMap(weatherData ->
+                        aiAdvisorService.getAdviceFromWeather(weatherData.getCurrent()) // Bước 2: Lấy dữ liệu đó gọi sang AI
+                                .map(advice -> new WeatherAdviceResponse( // Bước 3: Trộn kết quả
+                                        weatherData.getLocation().getName(),
+                                        weatherData.getCurrent().getTempC(),
+                                        weatherData.getCurrent().getCondition().getText(),
+                                        advice
+                                ))
+                );
+    }
 }
