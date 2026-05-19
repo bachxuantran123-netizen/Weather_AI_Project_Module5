@@ -2,26 +2,29 @@ package com.example.weather_ai.service;
 
 import com.example.weather_ai.dto.WeatherAdviceResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 @Service
-@RequiredArgsConstructor // Sử dụng Lombok để inject các Service qua Constructor
+@RequiredArgsConstructor
 public class WeatherFacadeService {
 
     private final WeatherService weatherService;
     private final AiAdvisorService aiAdvisorService;
 
-    public Mono<WeatherAdviceResponse> getWeatherWithAdvice(String city) {
-        return weatherService.getCurrentWeather(city) // Bước 1: Gọi API thời tiết
+    // Kích hoạt Cache
+    @Cacheable(value = "weatherCache", key = "#city")
+    public WeatherAdviceResponse getWeatherWithAdvice(String city) {
+        return weatherService.getCurrentWeather(city)
                 .flatMap(weatherData ->
-                        aiAdvisorService.getAdviceFromWeather(weatherData.getCurrent()) // Bước 2: Lấy dữ liệu đó gọi sang AI
-                                .map(advice -> new WeatherAdviceResponse( // Bước 3: Trộn kết quả
+                        aiAdvisorService.getAdviceFromWeather(weatherData.getCurrent())
+                                .map(advice -> new WeatherAdviceResponse(
                                         weatherData.getLocation().getName(),
                                         weatherData.getCurrent().getTempC(),
                                         weatherData.getCurrent().getCondition().getText(),
                                         advice
                                 ))
-                );
+                )
+                .block(); // Ép chạy đồng bộ để hứng kết quả thật lưu vào Redis
     }
 }
