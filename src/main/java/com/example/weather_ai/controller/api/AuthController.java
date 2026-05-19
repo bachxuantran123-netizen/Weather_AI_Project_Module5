@@ -2,12 +2,13 @@ package com.example.weather_ai.controller.api;
 
 import com.example.weather_ai.dto.JwtResponse;
 import com.example.weather_ai.dto.LoginRequest;
-import com.example.weather_ai.entity.Account;
-import com.example.weather_ai.repository.AccountRepository;
 import com.example.weather_ai.service.AuthService;
 import com.example.weather_ai.utils.JwtUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,36 +16,38 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final AccountRepository accountRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final AuthenticationManager authenticationManager;
 
-    // constructor injection
-    public AuthController(AuthService authService, AccountRepository accountRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
+    public AuthController(AuthService authService, JwtUtils jwtUtils, AuthenticationManager authenticationManager) {
         this.authService = authService;
-        this.accountRepository = accountRepository;
-        this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody LoginRequest request) { // Dùng DTO
+    public ResponseEntity<?> registerUser(@RequestBody LoginRequest request) {
         authService.register(request.getUsername(), request.getPassword());
         return ResponseEntity.ok("User registered successfully!");
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest request) {
-        // Tìm user, kiểm tra mật khẩu
-        Account account = accountRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            // Spring Security sẽ TỰ ĐỘNG gọi CustomUserDetailsService để lấy user và tự động check mật khẩu mã hóa
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
 
-        if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
-            return ResponseEntity.status(401).body("Invalid credentials");
+            // Nếu không lỗi tức là pass, lưu vào Context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // Tạo JWT và trả về
+            String jwt = jwtUtils.generateJwtToken(request.getUsername());
+            return ResponseEntity.ok(new JwtResponse(jwt));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Tài khoản hoặc mật khẩu không chính xác");
         }
-
-        // Nếu hợp lệ, tạo JWT
-        String jwt = jwtUtils.generateJwtToken(account.getUsername());
-        return ResponseEntity.ok(new JwtResponse(jwt)); // Dùng DTO trả về token
     }
 }
