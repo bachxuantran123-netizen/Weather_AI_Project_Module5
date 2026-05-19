@@ -20,6 +20,6 @@ public class AdminWebController {
         // 1. Tiêm (Inject) AccountRepository vào đây.
         // 2. Lấy danh sách user và đưa vào model.
 
-        return "dashboard"; // Spring Boot sẽ tìm file dashboard.html trong thư mục templates
+        return "admin/dashboard"; // Spring Boot sẽ tìm file dashboard.html trong thư mục templates
     }
 }

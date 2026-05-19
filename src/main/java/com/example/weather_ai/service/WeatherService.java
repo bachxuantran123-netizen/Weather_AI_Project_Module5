@@ -11,26 +11,23 @@ public class WeatherService {
 
     private final WebClient webClient;
     private final String apiKey;
+    private final String baseUrl;
 
     public WeatherService(
-            WebClient.Builder webClientBuilder,
             @Value("${weatherapi.base-url}") String baseUrl,
             @Value("${weatherapi.key}") String apiKey) {
-
-        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
-        this.apiKey = apiKey;
+        this.webClient = WebClient.create(baseUrl.trim());
+        this.apiKey = apiKey.trim();
+        this.baseUrl = baseUrl.trim();
     }
 
-    // Phương thức trả về Mono (Bất đồng bộ)
     public Mono<WeatherApiResponse> getCurrentWeather(String city) {
+        String finalUrl = this.baseUrl + "/current.json?key=" + this.apiKey + "&q=" + city + "&aqi=no";
+
         return this.webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/current.json")
-                        .queryParam("key", apiKey)
-                        .queryParam("q", city)
-                        .queryParam("aqi", "no") // Tạm thời tắt lấy chỉ số bụi mịn
-                        .build())
+                .uri(finalUrl)
                 .retrieve()
-                .bodyToMono(WeatherApiResponse.class);
+                .bodyToMono(WeatherApiResponse.class)
+                .onErrorMap(e -> new RuntimeException("🚨 LỖI TỪ WEATHER API: " + e.getMessage()));
     }
 }

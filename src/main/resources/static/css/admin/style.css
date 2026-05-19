@@ -1,0 +1,76 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    min-height: 100vh;
+    background-color: #212529;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+#sidebar .nav-link {
+    color: #adb5bd;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 4px 15px;
+    transition: 0.2s;
+}
+
+#sidebar .nav-link:hover, #sidebar .nav-link.active {
+    background-color: #343a40;
+    color: #fff;
+}
+
+#sidebar .nav-link i {
+    width: 25px;
+}
+
+/* Main Content Styling */
+#page-content-wrapper {
+    width: 100%;
+}
+
+.navbar-custom {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+.icon-box {
+    width: 55px;
+    height: 55px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: white;
+}
+
+.bg-gradient-primary { background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); }
+.bg-gradient-success { background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%); }
+.bg-gradient-warning { background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%); }
+
+/* Table Styling */
+.table-custom th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
