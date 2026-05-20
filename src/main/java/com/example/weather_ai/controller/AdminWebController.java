@@ -1,25 +1,42 @@
 package com.example.weather_ai.controller;
 
+import com.example.weather_ai.entity.AccountLocation;
+import com.example.weather_ai.repository.AccountLocationRepository;
+import com.example.weather_ai.repository.AccountRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/admin")
+@RequiredArgsConstructor
 public class AdminWebController {
 
-    // Mở Link Này Để Chạy Nhé AE http://localhost:8080/admin/dashboard
+    private final AccountRepository accountRepository;
+    private final AccountLocationRepository accountLocationRepository;
+
     @GetMapping("/dashboard")
     public String showDashboard(Model model) {
-        // Gắn dữ liệu tạm thời để giao diện Thymeleaf hiển thị
-        model.addAttribute("pageTitle", "Hệ thống Quản trị Thời tiết AI");
+        // 1. Truy vấn dữ liệu THẬT từ Database
+        long activeUsers = accountRepository.count();
+        List<AccountLocation> recentLocations = accountLocationRepository.findAll();
+
+        // 2. Đẩy dữ liệu sang cho file HTML
+        model.addAttribute("pageTitle", "Weather_AI | Admin Dashboard");
         model.addAttribute("welcomeMessage", "Chào mừng Admin!");
 
-        // TODO (Dành cho thành viên nhóm):
-        // 1. Tiêm (Inject) AccountRepository vào đây.
-        // 2. Lấy danh sách user và đưa vào model.
+        // Dữ liệu động
+        model.addAttribute("activeUsers", activeUsers);
+        model.addAttribute("recentLocations", recentLocations);
 
-        return "admin/dashboard"; // Spring Boot sẽ tìm file dashboard.html trong thư mục templates
+        // Dữ liệu giả lập (Sau này nếu có bảng Log API thì thay bằng số thật)
+        model.addAttribute("totalRequests", 1542);
+        model.addAttribute("aiAdvicesGenerated", 980);
+
+        return "admin/dashboard";
     }
 }

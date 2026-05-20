@@ -12,8 +12,12 @@ public class WeatherFacadeService {
     private final WeatherService weatherService;
     private final AiAdvisorService aiAdvisorService;
 
-    // Kích hoạt Cache
-    @Cacheable(value = "weatherCache", key = "#city")
+    //KHÔNG lưu cache nếu chuỗi aiAdvice có chứa từ "LỖI"
+    @Cacheable(
+            value = "weatherCache",
+            key = "#city",
+            unless = "#result.aiAdvice.contains('LỖI')"
+    )
     public WeatherAdviceResponse getWeatherWithAdvice(String city) {
         return weatherService.getCurrentWeather(city)
                 .flatMap(weatherData ->
@@ -25,6 +29,6 @@ public class WeatherFacadeService {
                                         advice
                                 ))
                 )
-                .block(); // Ép chạy đồng bộ để hứng kết quả thật lưu vào Redis
+                .block();
     }
 }
