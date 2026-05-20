@@ -1,81 +1,65 @@
-# 🚀 BẢN BÀN GIAO & HƯỚNG DẪN DỰ ÁN: WEATHER AI (PHASE 1)
+# 🚀 BẢN BÀN GIAO & HƯỚNG DẪN DỰ ÁN: WEATHER AI (PHASE 2)
 
 **Chào toàn team,**
-Hiện tại, bộ khung mã nguồn cốt lõi (Base Code) của hệ thống đã được Bách thiết lập hoàn chỉnh 100% và đẩy lên nhánh `main` (Private Repo). Để chúng ta có thể bắt tay vào code Phase 1 một cách trơn tru và không giẫm chân lên nhau, mọi người vui lòng đọc kỹ tài liệu này.
+Đầu tiên, xin chúc mừng tất cả anh em vì chúng ta đã hoàn thành xuất sắc **Phase 1**! Hệ thống móng của dự án hiện tại đang cực kỳ vững chắc, chạy mượt mà và đã được gộp toàn bộ lên nhánh `main`. 
 
-## PHẦN 1: HƯỚNG DẪN CẤU HÌNH LOCAL (BẮT BUỘC MỌI NGƯỜI PHẢI LÀM)
-
-Sau khi `git clone` dự án về máy, các bạn hãy thực hiện đúng 4 bước sau trước khi nhấn nút Run:
-
-1. **Cập nhật thư viện:** Nhấn nút **Reload All Gradle Projects** (biểu tượng con voi trong IntelliJ) để tải thư viện Spring WebFlux, Spring Data JPA, MySQL Driver về máy.
-2. **Khởi tạo Database:** Mở công cụ quản lý MySQL (Workbench/DBeaver/XAMPP) và chạy lệnh:
-```sql
-CREATE DATABASE weather_ai_db;
-
-```
-
-
-3. **Cấu hình file `application.properties`:** Mở file `src/main/resources/application.properties`. Bạn hãy sửa lại cấu hình MySQL cho khớp với máy của bạn:
-
-```properties
-    spring.datasource.username=root 
-    spring.datasource.password=mat_khau_cua_ban
-```
-4.  **Chuẩn bị API Keys cá nhân:** 
-    *   Đăng ký tài khoản tại `weatherapi.com` để lấy Key thời tiết.
-    *   Vào `aistudio.google.com` để tạo Key Gemini.
-    *   Điền Key vào file `application.properties` (Mục `weatherapi.key` và `ai.api-key`). **Tuyệt đối không push file này lên Git** để tránh rò rỉ Key.
+Bây giờ là lúc chúng ta bước sang **Phase 2 (Sprint 2)**: Đắp thêm thịt cho dự án, xử lý các luồng nghiệp vụ phức tạp hơn và chuẩn bị cho việc triển khai thực tế. Mọi người vui lòng đọc kỹ tài liệu này trước khi bắt đầu code.
 
 ---
 
-## PHẦN 2: TIẾN TRÌNH HIỆN TẠI (CHÚNG TA ĐÃ CÓ NHỮNG GÌ?)
+## PHẦN 1: HƯỚNG DẪN CẤU HÌNH LOCAL (CẬP NHẬT MỚI)
 
-Kiến trúc hệ thống đang tuân thủ nghiêm ngặt nguyên lý **Trách nhiệm Độc nhất (SRP)**. Mọi người chú ý không gộp logic lung tung:
+Do Phase 1 chúng ta đã tích hợp thêm công nghệ mới để tối ưu hiệu năng, anh em khi `git pull origin main` về máy bắt buộc phải làm thêm các bước sau:
 
-*   **Tầng Data (Entities & Repositories):** Đã có sẵn `Account`, `Location` và `AccountLocation` được cấu hình quan hệ Many-to-Many chuẩn xác.
-*   **Tầng Giao tiếp ngoại vi (Services):**
-    *   `WeatherService`: Chỉ dùng để gọi WeatherAPI.
-    *   `AiAdvisorService`: Chỉ dùng để gọi Gemini API.
-*   **Tầng Điều phối (Facade):** `WeatherFacadeService` đóng vai trò "nhạc trưởng", gọi luồng thời tiết xong thì đẩy qua luồng AI để trộn kết quả.
-*   **Tầng Hiển thị (Controllers):** `AdminWebController` (trả về trang HTML quản trị) và `WeatherApiController` (trả về JSON cho Mobile App).
-*   **Bắt lỗi (Global Exception):** `GlobalExceptionHandler` đã được thiết lập để chống sập app khi API bên thứ 3 bị lỗi. 
-
----
-
-## PHẦN 3: MỤC TIÊU TIẾP THEO & PHÂN CÔNG (SPRINT 1)
-
-Để hệ thống sớm có hình hài, chúng ta sẽ chia nhau đánh chiếm 3 mặt trận độc lập:
-
-### 👤 1. Thành viên A: Chuyên trách Bảo mật (Security)
-*   **Nhiệm vụ:** Khóa các API lại để người dùng phải đăng nhập mới xem được thời tiết.
-*   **Công việc cụ thể:** 
-    1. Nghiên cứu thư viện Spring Security 3.0+.
-    2. Viết logic mã hóa mật khẩu người dùng (BCrypt) khi lưu vào bảng `Account`.
-    3. Cấu hình cấp phát và xác thực Token JWT.
-
-### 👤 2. Thành viên B: Chuyên trách Tích hợp API (Integration)
-*   **Nhiệm vụ:** Thay thế dữ liệu giả (Mock Data) bằng dữ liệu thật từ vệ tinh và AI.
-*   **Công việc cụ thể:** 
-    1. Vào `WeatherService`, dùng `WebClient` thực hiện lệnh GET để kéo dữ liệu JSON từ WeatherAPI và map vào file `WeatherApiResponse.java`.
-    2. Vào `AiAdvisorService`, thiết kế Prompt Template và dùng `WebClient` thực hiện lệnh POST gửi cho Gemini lấy lời khuyên.
-
-### 👤 3. Bách: Core & Tối ưu hóa
-*   **Nhiệm vụ:** Hoàn thiện luồng Location, tối ưu hiệu năng và Review Code.
-*   **Công việc cụ thể:** 
-    1. Viết các API CRUD (Thêm/Sửa/Xóa) cho bảng `Location`.
-    2. Thiết lập Redis Cache để lưu tạm dữ liệu thời tiết (tránh gọi API quá nhiều lần làm cháy túi).
-    3. Trực tiếp Review các Pull Request của A và B.
+1. **Cập nhật thư viện:** Nhấn nút **Reload All Gradle Projects** để tải thêm thư viện Spring Data Redis.
+2. **Cài đặt & Bật Redis Server (BẮT BUỘC):**
+   - Hệ thống giờ đã có Cache, nếu không bật Redis thì App sẽ báo lỗi không chạy được.
+   - *Windows:* Tải bản Portable của Memurai hoặc Redis-x64-5.0.14.1, chạy file `redis-server.exe`.
+   - *Docker (Khuyên dùng):* Chạy lệnh `docker run --name weather-redis -p 6379:6379 -d redis`
+3. **Cập nhật Database:** Do cấu hình `spring.jpa.hibernate.ddl-auto=update`, Spring Boot sẽ tự động map các bảng mới, anh em không cần chạy lại script tạo bảng nữa.
+4. **Kiểm tra API Keys:** Đảm bảo file `application.properties` của anh em ở local vẫn chứa `weatherapi.key` và `ai.api-key` hợp lệ.
 
 ---
 
-## 🚨 PHẦN 4: QUY TẮC LÀM VIỆC NHÓM TRÊN GIT (BẮT BUỘC)
+## PHẦN 2: TIẾN TRÌNH HIỆN TẠI (CHÚNG TA ĐÃ HOÀN THÀNH GÌ?)
 
-Để tránh "thảm họa" Merge Conflict làm hỏng công sức của nhau:
+- **Bảo mật (Security):** Đã tích hợp thành công Spring Security 6 + JWT. Luồng đăng nhập, mã hóa BCrypt, cấp phát và chặn/mở Token đã hoạt động 100%.
+- **Tích hợp API:** Tích hợp thành công Weather API (Lấy thời tiết) và Gemini AI (Đóng vai chuyên gia khuyên mặc đồ gì).
+- **Core Database & CRUD:** Xây dựng thành công tính năng "Lưu Địa điểm Yêu thích" (`Location` & `AccountLocation`) tự động nhận diện User qua JWT Token.
+- **Tối ưu Hiệu năng:** Đã tích hợp **Redis Cache**, tốc độ truy vấn thời tiết từ lần thứ 2 trở đi giảm xuống dưới 10ms (Không tốn API Quota). Đã chặn Cache lỗi (Cache Poisoning).
+- **Giao diện Admin:** Xây dựng thành công Admin Dashboard (Thymeleaf + Bootstrap), đổ dữ liệu thật và vẽ biểu đồ cực đẹp bằng Chart.js.
+
+---
+
+## PHẦN 3: MỤC TIÊU TIẾP THEO & PHÂN CÔNG (SPRINT 2)
+
+Ở Phase này, chúng ta sẽ làm cho hệ thống "thực chiến" hơn.
+
+### 👤 1. Minh: Chuyên trách Security & Admin Logic
+* **Nhiệm vụ:** Biến Admin Dashboard thành công cụ quản trị thực sự, không chỉ để ngắm.
+* **Công việc cụ thể:** 1. Viết API Khóa / Mở khóa / Xóa mềm (Soft Delete) tài khoản người dùng.
+    2. Gắn API này vào nút thao tác trên giao diện Tab "Quản lý User" (Thymeleaf).
+    3. Viết luồng **Đăng xuất (Logout)** (Gợi ý: Đưa Token hiện tại vào Blacklist trong Redis).
+
+### 👤 2. Lương: Chuyên trách Tính năng Mở rộng (Feature)
+* **Nhiệm vụ:** Thu thập dữ liệu sử dụng để thay thế các con số giả lập (Mock data) trên Dashboard.
+* **Công việc cụ thể:** 1. Tạo thêm Entity `SearchHistory` (Lưu lại việc User nào vừa tra cứu thành phố nào, lúc mấy giờ).
+    2. Cắm logic lưu lịch sử này vào trong `WeatherFacadeService` (chạy bất đồng bộ để không làm chậm luồng chính).
+    3. Trích xuất số liệu thật (Tổng số Request, Lời khuyên AI) đẩy lên giao diện Dashboard.
+
+### 👤 3. Bách: Core, DevOps & Testing
+* **Nhiệm vụ:** Chuẩn hóa quy trình phát triển và bảo vệ Server.
+* **Công việc cụ thể:** 1. **Dockerize:** Viết file `docker-compose.yml` để đóng gói toàn bộ App + MySQL + Redis. Anh em sau này chỉ cần 1 lệnh `docker-compose up` là chạy được hết, không cần cài đặt lẻ tẻ.
+    2. **Rate Limiting:** Cấu hình Bucket4j giới hạn số lần gọi API (Ví dụ: 1 User chỉ được gọi API thời tiết 10 lần/phút) để chống DDoS và chống cháy túi tài khoản Google Gemini.
+    3. **Unit Test:** Viết JUnit 5 cho các Service cốt lõi (WeatherService, AuthService).
+
+---
+
+## 🚨 PHẦN 4: QUY TẮC LÀM VIỆC (VẪN NHƯ CŨ - KHÔNG NGOẠI LỆ)
+
 1.  **Tuyệt đối không code và đẩy (push) trực tiếp lên nhánh `main`.**
-2.  Khi bắt đầu làm việc, hãy rẽ nhánh (Branch):
-    *   Thành viên A tạo nhánh: `feature/security-jwt`
-    *   Thành viên B tạo nhánh: `feature/api-integration`
-3.  Làm xong tính năng, đẩy nhánh cá nhân lên Github/Gitlab và tạo **Pull Request (PR)**.
-4.  Tech Lead sẽ vào kiểm tra code, nếu đạt chuẩn mới được phép gộp (Merge) vào `main`.
+2.  Bắt buộc phải rẽ nhánh khi bắt đầu Task (VD: `feature/admin-user-management`, `feature/search-history`, `feature/dockerize`).
+3.  Khi hoàn thành, đẩy nhánh lên Github và tạo **Pull Request (PR)**.
+4.  Tech Lead (Bách) sẽ review. Code chỉ được Merge khi chạy test không lỗi và không bị Conflict.
 
-**Chúc anh em code mượt mà, không bug!**
+**Phase 1 chúng ta đã làm quá tốt rồi, Phase 2 anh em tiếp tục giữ vững phong độ nhé! Chúc team code ít bug!**
