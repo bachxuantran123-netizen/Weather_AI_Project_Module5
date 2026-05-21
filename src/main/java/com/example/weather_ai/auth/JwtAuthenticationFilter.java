@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,10 +22,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
+    private final StringRedisTemplate redisTemplate;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, CustomUserDetailsService userDetailsService,  StringRedisTemplate redisTemplate) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.redisTemplate = redisTemplate;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/auth/");
     }
 
     @Override
@@ -32,15 +41,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwt = parseJwt(request);
+            if (jwt != null) {
+                Boolean isBlacklisted = redisTemplate.hasKey("BL_" + jwt.trim());
+
+                if (Boolean.TRUE.equals(isBlacklisted)) {
+                    logger.warn("🚨 Có kẻ đang cố dùng Token đã bị đăng xuất!");
+
+                    // 1. ÉP TRẢ VỀ LỖI 401 UNAUTHORIZED TRỰC TIẾP
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\": \"Token đã bị vô hiệu hóa (Đăng xuất). Vui lòng đăng nhập lại!\"}");
+
+                    // 2. RETURN NGAY LẬP TỨC ĐỂ BÓP CHẾT REQUEST (KHÔNG GỌI doFilter)
+                    return;
+                }
+            }
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
-
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                // KIỂM TRA TRẠNG THÁI KHÓA TÀI KHOẢN
+                if (!userDetails.isEnabled()) {
+                    logger.warn("🚨 User " + username + " đang cố gọi API bằng Token cũ, nhưng tài khoản ĐÃ BỊ KHÓA!");
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\": \"Tài khoản của bạn đã bị Quản trị viên khóa!\"}");
+                    return; // Ngắt luồng, không cho vào Controller
+                }
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Lưu thông tin xác thực vào Security Context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
@@ -54,7 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String headerAuth = request.getHeader("Authorization");
         // Header hợp lệ phải bắt đầu bằng "Bearer "
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7);
+            return headerAuth.substring(7).trim();
         }
         return null;
     }
