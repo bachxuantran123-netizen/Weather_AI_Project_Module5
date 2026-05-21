@@ -24,7 +24,14 @@ public class CustomUserDetailsService implements UserDetailsService {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user: " + username));
 
-        // Convert Account của bạn thành UserDetails của Spring Security
-        return new User(account.getUsername(), account.getPassword(), new ArrayList<>());
+        return new User(
+                account.getUsername(),
+                account.getPassword(),
+                account.isActive(),
+                true,
+                true,
+                true,
+                new ArrayList<>()
+        );
     }
 }

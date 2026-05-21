@@ -49,4 +49,13 @@ public class JwtUtils {
             return false;
         }
     }
+    // Lấy thời gian hết hạn của Token
+    public Date getExpirationDateFromJwtToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
+    }
 }
