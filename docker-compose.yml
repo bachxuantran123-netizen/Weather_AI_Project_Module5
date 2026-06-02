@@ -1,0 +1,49 @@
+services:
+  # 1. Cơ sở dữ liệu MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: weather_ai_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: weather_ai_db
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+
+  # 2. Redis Cache & Blacklist
+  redis:
+    image: redis:7-alpine
+    container_name: weather_ai_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 3. Ứng dụng Spring Boot của chúng ta
+  app:
+    build: .
+    container_name: weather_ai_app
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    environment:
+      # Trỏ URL kết nối sang tên container thay vì localhost
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/weather_ai_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATA_REDIS_HOST=redis
+      # Nạp các API Key từ môi trường máy thật vào (Bảo mật)
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+
+volumes:
+  mysql_data:

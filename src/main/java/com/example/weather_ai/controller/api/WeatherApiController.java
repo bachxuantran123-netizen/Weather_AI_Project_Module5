@@ -1,11 +1,16 @@
 package com.example.weather_ai.controller.api;
 
 import com.example.weather_ai.dto.WeatherAdviceResponse;
+import com.example.weather_ai.service.SearchHistoryService;
 import com.example.weather_ai.service.WeatherFacadeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/weather")
@@ -13,11 +18,19 @@ import reactor.core.publisher.Mono;
 public class WeatherApiController {
 
     private final WeatherFacadeService weatherFacadeService;
-    // Mở Link Này Để Kiểm Tra API Nhé AE !!! http://localhost:8080/api/v1/weather/current?city=Hanoi
+    private final SearchHistoryService searchHistoryService;
+
     @GetMapping("/current")
-    public Mono<ResponseEntity<WeatherAdviceResponse>> getCurrentWeather(@RequestParam String city) {
-        return weatherFacadeService.getWeatherWithAdvice(city)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getCurrentWeatherWithAdvice(@RequestParam String city, Principal principal) {
+
+        // 1. Kích hoạt lưu lịch sử chạy ngầm (Không block luồng chính)
+        if (principal != null) {
+            String username = principal.getName();
+            searchHistoryService.logSearchAsync(username, city);
+        }
+
+        // 2. Gọi logic lấy thời tiết (vẫn tận dụng được Redis Cache nguyên vẹn)
+        WeatherAdviceResponse response = weatherFacadeService.getWeatherWithAdvice(city);
+        return ResponseEntity.ok(response);
     }
 }

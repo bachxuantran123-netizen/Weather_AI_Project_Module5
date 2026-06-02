@@ -1,40 +1,55 @@
 package com.example.weather_ai.service;
 
 import com.example.weather_ai.dto.WeatherApiResponse;
+import com.example.weather_ai.dto.GeminiResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class AiAdvisorService {
 
     private final WebClient webClient;
     private final String aiApiKey;
+    private final String fullUrl;
 
     public AiAdvisorService(
-            WebClient.Builder webClientBuilder,
-            @Value("${ai.base-url}") String baseUrl,
+            @Value("${ai.base-url}") String fullUrl,
             @Value("${ai.api-key}") String aiApiKey) {
 
-        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
-        this.aiApiKey = aiApiKey;
+        this.webClient = WebClient.create();
+        this.aiApiKey = aiApiKey.trim();
+        this.fullUrl = fullUrl.trim();
     }
 
-    // Hàm này sẽ nhận dữ liệu thời tiết thô và yêu cầu AI phân tích
     public Mono<String> getAdviceFromWeather(WeatherApiResponse.CurrentDto currentData) {
-        // Tạo câu lệnh (Prompt) để ra lệnh cho AI
         String prompt = String.format(
-                "Thời tiết hiện tại đang là %s, nhiệt độ %s độ C, chỉ số UV là %s. " +
-                        "Hãy đóng vai một chuyên gia sức khỏe, đưa ra lời khuyên ngắn gọn (dưới 50 từ) " +
-                        "về việc nên mang theo gì khi ra đường.",
-                currentData.getCondition().getText(),
-                currentData.getTempC(),
-                currentData.getUv()
+                "Thời tiết đang là %s, nhiệt độ %s độ C, chỉ số UV %s. Hãy đóng vai chuyên gia thời tiết khuyên 1 câu ngắn gọn (dưới 30 chữ) nên mang đồ gì ra đường.",
+                currentData.getCondition().getText(), currentData.getTempC(), currentData.getUv()
         );
 
-        // TODO: Gửi prompt này lên AI thông qua WebClient và map JSON trả về.
-        // Tạm thời trả về Mock Data để ráp nối luồng (Pipeline) trước.
-        return Mono.just("AI Advice (Mock): " + prompt);
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
+        );
+
+        return this.webClient.post()
+                .uri(this.fullUrl)
+                .header("x-goog-api-key", this.aiApiKey)
+                .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(GeminiResponse.class) // Hứng bằng DTO chuẩn
+                .map(response -> {
+                    try {
+                        return response.getCandidates().get(0).getContent().getParts().get(0).getText();
+                    } catch (Exception e) {
+                        return "Không thể phân tích phản hồi từ AI.";
+                    }
+                })
+                .onErrorResume(e -> Mono.just("🚨 LỖI TỪ GEMINI: " + e.getMessage()));
     }
 }

@@ -22,11 +22,15 @@ public class Account {
     @Column(nullable = false)
     private String password;
 
-    // Quan hệ 1-N tới bảng trung gian
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(nullable = false)
+    private String role = "USER";
+
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccountLocation> trackedLocations = new ArrayList<>();
 
-    // Helper method để code ở Service sạch sẽ hơn
     public void addLocation(Location location, String alias) {
         AccountLocation accountLocation = new AccountLocation(this, location, alias);
         trackedLocations.add(accountLocation);
