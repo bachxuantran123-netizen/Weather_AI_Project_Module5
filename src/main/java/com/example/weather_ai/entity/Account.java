@@ -25,6 +25,9 @@ public class Account {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccountLocation> trackedLocations = new ArrayList<>();
 

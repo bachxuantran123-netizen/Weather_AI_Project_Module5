@@ -69,4 +69,14 @@ public class AdminWebController {
 
         return "admin/dashboard";
     }
+    @GetMapping("/users")
+    public String showUsersManager(Model model) {
+        // Lấy toàn bộ danh sách User từ Database
+        List<com.example.weather_ai.entity.Account> users = accountRepository.findAll();
+
+        model.addAttribute("users", users);
+        model.addAttribute("pageTitle", "Weather_AI | Quản lý User");
+
+        return "admin/users"; // Trỏ tới file HTML sẽ tạo ở Bước 2
+    }
 }

@@ -34,12 +34,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Tắt CSRF vì dùng REST API + JWT
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không dùng session
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC).permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // Mở public endpoints đăng nhập/đăng ký
-                        .requestMatchers("/admin/**", "/css/**", "/js/**", "/img/**").permitAll() // Tạm thời mở cho Web Admin (cần xử lý riêng sau)
+                        .requestMatchers("/api/auth/**", "/admin-login").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
+
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
