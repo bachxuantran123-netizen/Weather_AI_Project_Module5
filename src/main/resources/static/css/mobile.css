@@ -62,3 +62,46 @@ body {
     display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem;
     box-shadow: 0 5px 20px rgba(217, 70, 239, 0.4); transform: translateY(-20px); border: 3px solid #1a1a2e;
 }
+
+/* Auth Modal Styles */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 28, 63, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+.modal-content {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 25px;
+    width: 90%; max-width: 400px; padding: 25px; position: relative;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    transform: translateY(20px); transition: transform 0.3s ease;
+}
+.modal-overlay.active .modal-content { transform: translateY(0); }
+
+.modal-close {
+    position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b5b8d9; cursor: pointer;
+}
+
+.modal-header { text-align: center; font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 20px; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 0.9rem; color: #d0d2eb; margin-bottom: 5px; }
+.form-control {
+    width: 100%; box-sizing: border-box; padding: 12px 15px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; font-size: 1rem; outline: none; font-family: 'Nunito', sans-serif;
+}
+.form-control::placeholder { color: rgba(255,255,255,0.4); }
+.form-control:focus { border-color: #d946ef; background: rgba(255,255,255,0.15); }
+
+.btn-auth {
+    width: 100%; padding: 12px; border-radius: 12px; border: none; font-size: 1.1rem; font-weight: 700;
+    color: #fff; background: linear-gradient(135deg, #8b5cf6, #d946ef); cursor: pointer;
+    margin-top: 10px; box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3);
+}
+
+.auth-switch { text-align: center; margin-top: 15px; font-size: 0.9rem; color: #b5b8d9; }
+.auth-switch span { color: #f0abfc; font-weight: 700; cursor: pointer; }

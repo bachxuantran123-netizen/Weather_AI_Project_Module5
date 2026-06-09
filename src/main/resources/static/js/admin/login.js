@@ -26,9 +26,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     body: JSON.stringify(payload)
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const token = data.token;
+                const resJson = await response.json();
+                if (response.ok && resJson.success) {
+                    const token = resJson.data.token;
 
                     // 1. Lưu JWT vào LocalStorage
                     localStorage.setItem('jwt_token', token);
@@ -45,8 +45,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }, 500);
 
                 } else {
-                    const errRes = await response.text();
-                    errorText.innerText = errRes || "Sai tài khoản hoặc mật khẩu!";
+                    errorText.innerText = resJson.message || "Sai tài khoản hoặc mật khẩu!";
                     errorDiv.style.display = 'block';
                     btn.innerHTML = 'XÁC THỰC CẤP QUYỀN';
                     btn.disabled = false;
