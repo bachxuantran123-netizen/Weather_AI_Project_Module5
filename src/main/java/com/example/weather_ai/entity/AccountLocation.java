@@ -1,5 +1,6 @@
 package com.example.weather_ai.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,21 +17,20 @@ public class AccountLocation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // BẮT BUỘC dùng FetchType.LAZY để tránh N+1 Query Problem
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
+    @JsonIgnore
     private Account account;
 
-    // BẮT BUỘC dùng FetchType.LAZY
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
 
     @Column(name = "alias", length = 50)
-    private String alias; // Nơi lưu "Nhà", "Công ty", "Trường học"
+    private String alias;
 
     @Column(name = "is_primary")
-    private boolean isPrimary; // Đánh dấu vị trí mặc định hiển thị đầu tiên trên App
+    private boolean isPrimary;
 
     public AccountLocation(Account account, Location location, String alias) {
         this.account = account;

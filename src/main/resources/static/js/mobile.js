@@ -80,7 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (res.ok) {
                 let json = await res.json();
                 showToast('Đăng nhập thành công!', 'success');
-                localStorage.setItem('jwtToken', json.token || json.data?.token);
+                const validToken = json.accessToken || json.data?.accessToken;
+                localStorage.setItem('jwtToken', validToken);
+
                 authModal.classList.remove('active');
             } else {
                 showToast('Sai tên đăng nhập hoặc mật khẩu!', 'error');
