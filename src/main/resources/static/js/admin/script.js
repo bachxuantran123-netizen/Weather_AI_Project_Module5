@@ -90,12 +90,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     body: JSON.stringify({ username: username.trim(), password: password.trim() })
                 });
 
-                const responseText = await response.text();
-                if (response.ok) {
+                const resJson = await response.json();
+                if (response.ok && resJson.success) {
                     window.showCyberToast("THÀNH CÔNG", "Tạo tài khoản thành công!", "success");
                     setTimeout(() => window.location.reload(), 1500); // Reload để thấy user mới
                 } else {
-                    window.showCyberToast("LỖI", responseText || "Tên đăng nhập đã tồn tại!", "error");
+                    window.showCyberToast("LỖI", resJson.message || "Tên đăng nhập đã tồn tại!", "error");
                 }
             } catch (error) {
                 window.showCyberToast("MẤT KẾT NỐI", "Không thể kết nối máy chủ", "error");

@@ -194,7 +194,7 @@
                 let json = await res.json();
                 if (json.success) {
                     alert('Đăng nhập thành công!');
-                    localStorage.setItem('jwtToken', json.data.jwt);
+                    localStorage.setItem('jwtToken', json.data.token);
                     authModal.classList.remove('active');
                 } else {
                     alert('Lỗi: ' + json.message);
