@@ -127,194 +127,22 @@
         </div>
     </div>
 </div>
+<div class="modal-overlay" id="searchModal">
+    <div class="modal-content">
+        <i class="fa-solid fa-xmark modal-close" id="closeSearchModal"></i>
+        <div class="modal-header">Tìm Kiếm Khu Vực</div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // 1. Xử lý Bottom Navigation
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                navItems.forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
-            });
-        });
+        <div class="form-group">
+            <label>Tên Thành Phố</label>
+            <input type="text" id="searchInput" class="form-control" placeholder="Ví dụ: Hanoi, Sapa, Danang...">
+        </div>
 
-        // Xử lý Modal Đăng nhập/Đăng ký
-        const authModal = document.getElementById('authModal');
-        const loginForm = document.getElementById('loginFormContainer');
-        const registerForm = document.getElementById('registerFormContainer');
+        <button class="btn-auth" id="btnSearchSubmit">
+            <i class="fa-solid fa-magnifying-glass me-2"></i> Xem Thời Tiết
+        </button>
+    </div>
+</div>
 
-        document.getElementById('userProfileBtn').addEventListener('click', () => {
-            authModal.classList.add('active');
-        });
-        document.getElementById('closeAuthModal').addEventListener('click', () => {
-            authModal.classList.remove('active');
-        });
-        document.getElementById('switchToRegister').addEventListener('click', () => {
-            loginForm.style.display = 'none';
-            registerForm.style.display = 'block';
-        });
-        document.getElementById('switchToLogin').addEventListener('click', () => {
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'block';
-        });
-
-        // Gọi API Đăng ký
-        document.getElementById('btnRegisterSubmit').addEventListener('click', async () => {
-            const u = document.getElementById('registerUsername').value;
-            const p = document.getElementById('registerPassword').value;
-            if(!u || !p) return alert('Vui lòng điền đủ thông tin!');
-            try {
-                let res = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: u, password: p })
-                });
-                let json = await res.json();
-                if (json.success) {
-                    alert('Đăng ký thành công! Vui lòng đăng nhập.');
-                    document.getElementById('switchToLogin').click();
-                } else {
-                    alert('Lỗi: ' + json.message);
-                }
-            } catch (err) { alert('Lỗi kết nối máy chủ!'); }
-        });
-
-        // Gọi API Đăng nhập
-        document.getElementById('btnLoginSubmit').addEventListener('click', async () => {
-            const u = document.getElementById('loginUsername').value;
-            const p = document.getElementById('loginPassword').value;
-            if(!u || !p) return alert('Vui lòng điền đủ thông tin!');
-            try {
-                let res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: u, password: p })
-                });
-                let json = await res.json();
-                if (json.success) {
-                    alert('Đăng nhập thành công!');
-                    localStorage.setItem('jwtToken', json.data.token);
-                    authModal.classList.remove('active');
-                } else {
-                    alert('Lỗi: ' + json.message);
-                }
-            } catch (err) { alert('Lỗi kết nối máy chủ!'); }
-        });
-
-        // 2. Xử lý nút Thêm địa điểm gọi API thật
-        document.getElementById('addLocationBtn').addEventListener('click', async () => {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) {
-                alert('Vui lòng đăng nhập để lưu địa điểm yêu thích!');
-                authModal.classList.add('active'); // Mở popup đăng nhập
-                return;
-            }
-            
-            const cityName = document.getElementById('cityName').innerText;
-            if(cityName === "Đang tìm...") return;
-
-            try {
-                let res = await fetch('/api/v1/locations', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({
-                        cityName: cityName,
-                        latitude: 0,
-                        longitude: 0,
-                        alias: 'Yêu thích'
-                    })
-                });
-                let json = await res.json();
-                if (json.success) {
-                    alert("Thành công: " + json.data);
-                } else {
-                    alert('Lỗi: ' + json.message);
-                }
-            } catch (err) { alert('Lỗi hệ thống khi lưu địa điểm!'); }
-        });
-
-        // 3. Xử lý nút Tìm Kiếm (Kính lúp) & Giả lập Fake API
-        document.getElementById('searchBtn').addEventListener('click', () => {
-            const city = prompt("Nhập tên thành phố muốn xem thời tiết:");
-            if (city && city.trim() !== "") {
-                fetchMockWeather(city.trim());
-            }
-        });
-
-        function fetchMockWeather(city) {
-            // Hiển thị trạng thái đang tải
-            document.getElementById('cityName').innerText = "Đang tìm...";
-            document.getElementById('temperature').innerText = "--";
-            document.getElementById('condition').innerText = "Đang kết nối vệ tinh...";
-            document.getElementById('aiAdviceContent').innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> AI đang phân tích dữ liệu...";
-            document.getElementById('aiTags').innerHTML = "";
-
-            // Giả lập độ trễ mạng 1.5 giây
-            setTimeout(() => {
-                // Tạo dữ liệu giả (Mock Data) chuẩn DTO mà ta vừa thiết kế ở Backend
-                const mockResponse = {
-                    cityName: city.charAt(0).toUpperCase() + city.slice(1),
-                    temperature: (Math.random() * 15 + 15).toFixed(1), // Nhiệt độ ngẫu nhiên 15 - 30 độ
-                    condition: "Nắng Đẹp",
-                    aiAdvice: {
-                        advice: `Trời quang mây tạnh tại ${city}, rất thích hợp để ra ngoài đi dạo. Đừng quên mang kính râm!`,
-                        items_to_bring: ["Kính râm", "Mũ lưỡi trai", "Nước suối"],
-                        warnings: ["Chỉ số UV có thể tăng cao vào buổi trưa."]
-                    }
-                };
-
-                // Nếu nhiệt độ dưới 20 độ thì cho thời tiết Mưa/Lạnh
-                if (mockResponse.temperature < 20) {
-                    mockResponse.condition = "Mưa Lạnh";
-                    mockResponse.aiAdvice = {
-                        advice: `Nhiệt độ khá thấp tại ${city}, có mưa phùn. Hãy mặc áo ấm và mang ô.`,
-                        items_to_bring: ["Áo khoác len", "Ô che mưa"],
-                        warnings: ["Đường trơn trượt", "Dễ cảm lạnh"]
-                    };
-                }
-
-                updateUI(mockResponse);
-            }, 1500);
-        }
-
-        // 4. Hàm cập nhật giao diện (Render JSON -> HTML)
-        function updateUI(data) {
-            // Cập nhật thông số cơ bản
-            document.getElementById('cityName').innerText = data.cityName;
-            document.getElementById('temperature').innerText = Math.round(data.temperature);
-            document.getElementById('condition').innerText = data.condition;
-
-            // Random vài chỉ số phụ
-            document.getElementById('tempHigh').innerText = Math.round(data.temperature) + 4;
-            document.getElementById('tempLow').innerText = Math.round(data.temperature) - 3;
-            document.getElementById('uvIndex').innerText = data.temperature > 25 ? 8 : 3;
-            document.getElementById('uvDesc').innerText = data.temperature > 25 ? "Rất cao" : "Thấp";
-
-            // Cập nhật AI Advice
-            const aiData = data.aiAdvice;
-            document.getElementById('aiAdviceContent').innerText = `"${aiData.advice}"`;
-
-            // Render mảng items_to_bring và warnings thành các thẻ tag
-            let tagsHtml = '';
-
-            aiData.items_to_bring.forEach(item => {
-                tagsHtml += `<span class="ai-tag"><i class="fa-solid fa-check text-success"></i> ${item}</span>`;
-            });
-
-            aiData.warnings.forEach(warning => {
-                // Đổi màu cảnh báo sang tông đỏ/cam
-                tagsHtml += `<span class="ai-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">
-                                <i class="fa-solid fa-triangle-exclamation"></i> ${warning}
-                             </span>`;
-            });
-
-            document.getElementById('aiTags').innerHTML = tagsHtml;
-        }
-    });
-</script>
+<script th:src="@{/js/mobile.js}"></script>
 </body>
 </html>
