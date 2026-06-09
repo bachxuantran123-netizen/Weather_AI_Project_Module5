@@ -1,85 +1,53 @@
-🚀 BẢN BÀN GIAO & KẾ HOẠCH DỰ ÁN: WEATHER AI (PHASE 3 - SPRINT 3)
+🚀 BẢN BÀN GIAO & KẾ HOẠCH DỰ ÁN: WEATHER AI (PHASE 4 - SPRINT CUỐI)
 
 Chào toàn team,
 
-Xin chúc mừng tất cả anh em! Chúng ta đã khép lại Phase 2 một cách cực kỳ bùng nổ. Hạ tầng Backend giờ đây không chỉ mạnh mẽ, bảo mật mà giao diện Admin Dashboard cũng đã được "độ" lại theo phong cách Dark Theme (Hi-Tech) cực kỳ chuyên nghiệp.
+Xin chúc mừng tất cả anh em! Chúng ta đã khép lại Phase 3 một cách vô cùng ngoạn mục. Lõi Backend giờ đây không chỉ bảo mật chặt chẽ với Refresh Token & Redis, mà còn cung cấp luồng dữ liệu Thời tiết - AI Realtime cực kỳ mạnh mẽ. Hệ thống API Docs (Swagger) cũng đã lên hình mượt mà để sẵn sàng cho team Frontend.
 
-Bước sang Phase 3, mục tiêu tối thượng của chúng ta là "Đóng gói, Mở rộng API cho Mobile và Triển khai (Deployment)". Hãy đọc kỹ hướng dẫn cấu hình mới trước khi pull code về nhé!
+Bước sang Phase 4 (Sprint Cuối Cùng), mục tiêu tối thượng của chúng ta là "Thổi Hồn Vào Giao Diện (Data Binding) và Đưa Ứng Dụng Lên Cloud". 
 
-🛠️ PHẦN 1: HƯỚNG DẪN CẤU HÌNH LOCAL CHO MÔI TRƯỜNG MỚI (BẮT BUỘC)
-Hệ thống hiện tại đã được Dockerize hoàn toàn (cả MySQL và Redis) và sử dụng biến môi trường cực kỳ nghiêm ngặt. Anh em làm theo 4 bước sau để chạy app:
+🛠️ PHẦN 1: HƯỚNG DẪN CẤU HÌNH LOCAL & TEST API (BẮT BUỘC)
+Hệ thống vẫn giữ nguyên kiến trúc Docker, nhưng bổ sung thêm các endpoint API mới. Anh em làm theo các bước sau để pull code và test:
 
-Clone & Cập nhật: Chạy lệnh git pull origin main và nhấn Reload All Gradle Projects.
+1. Clone & Cập nhật: Chạy lệnh `git pull origin main` và nhấn Reload All Gradle Projects.
+2. Kiểm tra file `.env`: Đảm bảo file `.env` ở thư mục gốc vẫn chứa đủ 3 key bảo mật (Tuyệt đối không commit file này).
+3. Khởi động Hạ tầng: 
+   - Mở Terminal chạy: `docker-compose up -d mysql redis`
+4. Khởi động App & Trải nghiệm:
+   - Chạy class `WeatherAiApplication`.
+   - 📖 Test API qua Swagger: http://localhost:8080/swagger-ui/index.html
+   - 📱 Test Mobile UI: http://localhost:8080/mobile-preview
 
-Tạo file .env: Trong thư mục gốc của project (cùng cấp với build.gradle), anh em TỰ TẠO một file tên là .env và dán các key bảo mật vào (Tuyệt đối không commit file này lên Git):
-   WEATHER_API_KEY=your_weather_api_key_here
-   GEMINI_API_KEY=your_gemini_api_key_here
-   JWT_SECRET_KEY=MinhLuongBachDuAnModule5WeatherAIDangCapVippro
-Khởi động Hạ tầng (Docker):
+🏆 PHẦN 2: THÀNH QUẢ ĐẠT ĐƯỢC Ở PHASE 3
+- **Security & Auth:** Hoàn thiện luồng xác thực nâng cao. Đã tích hợp Refresh Token cấp phát lại phiên đăng nhập qua Redis mà không cần user phải gõ lại mật khẩu. API lấy Profile (`/api/v1/users/me`) hoạt động chuẩn xác.
+- **Forecast & AI Upgrade:** Nâng cấp từ Current API lên Forecast API (Dự báo 3 ngày). Đã có thuật toán tự động nội suy thời gian thực để cắt chính xác 24 khung giờ tiếp theo trả về cho App. Gemini AI đã trả về cấu trúc JSON xịn xò.
+- **DevOps & Document:** Tích hợp thành công Swagger (OpenAPI 3.0) tích hợp sẵn cơ chế gài Bearer Token. Thiết lập Github Actions CI/CD chạy Unit Test tự động mỗi khi có Pull Request.
 
-Đảm bảo Docker Desktop đang bật.
+🎯 PHẦN 3: MỤC TIÊU TIẾP THEO & PHÂN CÔNG (PHASE 4 - DATA BINDING & DEPLOYMENT)
+Nhiệm vụ của Sprint này là khai tử toàn bộ dữ liệu giả (Mock Data) trên giao diện Mobile và kết nối trực tiếp với API thật.
 
-Mở Terminal tại thư mục gốc và chạy: docker-compose up -d mysql redis
+👤 1. Minh: Chuyên trách Frontend & Trải nghiệm người dùng (UX)
+- *Nhiệm vụ:* Thông luồng dữ liệu thời tiết thực tế lên màn hình Mobile.
+- *Công việc cụ thể:*
+  - Xóa hàm `fetchMockWeather()` trong `mobile.js`. Viết hàm `fetchRealWeather(city)` gọi API GET `/api/v1/weather/current?city=...` (Kèm Token nếu có đăng nhập).
+  - Bóc tách JSON trả về để fill dữ liệu vào các thẻ nhiệt độ, độ ẩm, sức gió, UV.
 
-(Lưu ý: MySQL chạy ở port 3307, Redis chạy ở 6379).
+👤 2. Lương: Chuyên trách Xử lý DOM Nâng cao & AI Rendering
+- *Nhiệm vụ:* Render các mảng dữ liệu phức tạp (Array) thành HTML.
+- *Công việc cụ thể:*
+  - Viết vòng lặp Javascript để tự động sinh ra các block `<div class="hour-item">` cuộn ngang cho 24 khung giờ tiếp theo.
+  - Xử lý bóc tách mảng `items_to_bring` và `warnings` từ cục JSON của AI để render ra các thẻ tag màu sắc (Đỏ cho cảnh báo, Xanh cho lời khuyên).
 
-Khởi động App:
-
-Chạy class WeatherAiApplication trên IntelliJ.
-
-Mở trình duyệt kiểm tra Admin UI: http://localhost:8080/admin/dashboard
-
-🏆 PHẦN 2: THÀNH QUẢ ĐẠT ĐƯỢC Ở PHASE 2
-Bảo mật & Rate Limiting: JWT Token Filter hoạt động hoàn hảo, kết hợp cùng Bucket4j (chặn spam quá 10 requests/phút). Tính năng Đăng xuất (Blacklist Token vào Redis) đã hoàn thành.
-
-Tự động hóa Hạ tầng: Triển khai thành công docker-compose.yml. Giải quyết triệt để lỗi xung đột Port và Race Condition (chờ DB boot xong mới chạy App).
-
-Kiểm thử tự động: Đã có hệ thống Unit Test (JUnit 5 + Mockito) cho các luồng xử lý cốt lõi (AuthService, WeatherService).
-
-Giao diện Anti-Slop: Bảng Admin Dashboard đã được kết nối với API thật qua script.js (Fetch API), render biểu đồ Chart.js với phong cách UI Cyberpunk/Valorant sắc nét.
-
-🎯 PHẦN 3: MỤC TIÊU TIẾP THEO & PHÂN CÔNG (SPRINT 3 - CHUẨN BỊ CHO MOBILE APP)
-Dự án ban đầu định hướng cung cấp API cho Mobile App (MVVM Pattern). Do đó, Sprint này tập trung vào việc chuẩn hóa API và Deploy.
-
-👤 1. Minh: Chuyên trách Security Nâng cao & User Profile
-
-Nhiệm vụ: Hoàn thiện luồng xác thực dành cho thiết bị di động.
-
-Công việc cụ thể:
-
-Viết cơ chế Refresh Token (Vì Access Token hiện tại chỉ sống 24h, cần Refresh Token để user không phải login lại liên tục trên Mobile).
-
-Viết API lấy thông tin cá nhân (Profile) /api/v1/users/me.
-
-Cập nhật phân quyền Role rõ ràng (ROLE_ADMIN mới được vào trang /admin/, ROLE_USER chỉ gọi API thời tiết).
-
-👤 2. Lương: Chuyên trách Mở rộng Feature API & AI
-
-Nhiệm vụ: Biến AI thành một trợ lý đắc lực hơn.
-
-Công việc cụ thể:
-
-Nâng cấp WeatherService: Tích hợp thêm API lấy dự báo thời tiết 3-5 ngày tới (Forecast API).
-
-Nâng cấp Prompt cho Gemini trong AiAdvisorService: Trả về JSON cấu trúc rõ ràng thay vì String đơn thuần (Ví dụ: tách riêng mảng items_to_bring và warnings) để Mobile dễ parse UI.
-
-👤 3. Bách: Core, OpenAPI & Deployment (DevOps)
-
-Nhiệm vụ: Viết tài liệu API cho team Mobile và đưa dự án lên Internet.
-
-Công việc cụ thể:
-
-Tích hợp Swagger / OpenAPI 3.0: Gắn các annotation để tự động sinh ra trang Document API (/swagger-ui.html), giúp team Mobile biết cách gọi API.
-
-CI/CD Cơ bản: Viết một file .github/workflows/build.yml để Github tự động chạy Unit Test mỗi khi có người push code.
-
-Deploy (Tùy chọn nâng cao): Tìm hiểu cách deploy Docker container này lên một VPS hoặc các nền tảng như Render/Railway/AWS.
+👤 3. Bách: Deployment & System Optimization (DevOps)
+- *Nhiệm vụ:* Đưa ứng dụng ra Internet và kiểm tra sức chịu tải.
+- *Công việc cụ thể:*
+  - Cấu hình file Docker và deploy dự án lên một nền tảng Cloud (Render / Railway / AWS EC2).
+  - Setup CSDL MySQL và Redis trên Cloud.
+  - Kiểm tra xem Rate Limiter (Bucket4j) có hoạt động đúng khi bị gọi API liên tục trên môi trường production hay không.
 
 🚨 PHẦN 4: QUY TẮC LÀM VIỆC (GIỮ VỮNG KỶ LUẬT)
-Tuyệt đối không commit file .env lên Github.
+- Giai đoạn cuối rất dễ xảy ra conflict file `mobile.js`. Anh em bắt buộc phải chia hàm ra làm riêng biệt và báo cho nhau trước khi gộp code.
+- Tuyệt đối không commit file `.env` lên Github.
+- Vẫn tuân thủ tạo Pull Request (PR) để Code Review chéo nhau trước khi Merge vào nhánh `main`.
 
-Bắt buộc rẽ nhánh theo Feature (VD: feature/refresh-token, feature/swagger-docs).
-
-Tạo Pull Request (PR), phải pass toàn bộ Unit Test hiện có mới được Merge.
-
-Tuân thủ triệt để nguyên tắc SOLID. Không viết logic nghiệp vụ vào Controller!
+Tiến lên nào anh em, vạch đích ở ngay trước mắt rồi! 🚀
