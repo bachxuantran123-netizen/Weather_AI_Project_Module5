@@ -12,20 +12,32 @@ import java.util.Date;
 public class JwtUtils {
 
     @Value("${jwt.secret}")
-    private String jwtSecret; // Tiêm từ Environment Variables (không hardcode)
+    private String jwtSecret;
 
-    @Value("${jwt.expiration.ms}")
+    @Value("${jwt.expirationMs:86400000}") // 1 Ngày
     private int jwtExpirationMs;
+
+    @Value("${jwt.refreshExpirationMs:604800000}") // 7 Ngày cho Refresh Token
+    private int refreshExpirationMs;
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateJwtToken(String username) {
+    public String generateTokenFromUsername(String username) {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + refreshExpirationMs))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -49,6 +61,7 @@ public class JwtUtils {
             return false;
         }
     }
+
     // Lấy thời gian hết hạn của Token
     public Date getExpirationDateFromJwtToken(String token) {
         return Jwts.parser()
@@ -57,5 +70,9 @@ public class JwtUtils {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getExpiration();
+    }
+
+    public long getRefreshExpirationMs() {
+        return refreshExpirationMs;
     }
 }
