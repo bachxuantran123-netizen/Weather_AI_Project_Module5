@@ -7,10 +7,10 @@ document.addEventListener("DOMContentLoaded", function() {
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: window.dynamicChartLabels.length > 0 ? window.dynamicChartLabels : ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                labels: window.dynamicChartLabels && window.dynamicChartLabels.length > 0 ? window.dynamicChartLabels : ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
                 datasets: [{
                     label: 'Requests',
-                    data: window.dynamicChartData.length > 0 ? window.dynamicChartData : [12, 19, 30, 25, 42, 38, 50],
+                    data: window.dynamicChartData && window.dynamicChartData.length > 0 ? window.dynamicChartData : [12, 19, 30, 25, 42, 38, 50],
                     borderColor: '#8b5cf6',
                     backgroundColor: 'rgba(139, 92, 246, 0.15)',
                     borderWidth: 3,
@@ -27,23 +27,15 @@ document.addEventListener("DOMContentLoaded", function() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     x: {
-                        grid: {
-                            color: '#edf2f7',
-                            drawBorder: false
-                        },
+                        grid: { color: '#edf2f7', drawBorder: false },
                         ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
                     },
                     y: {
                         beginAtZero: true,
-                        grid: {
-                            color: '#edf2f7',
-                            borderDash: [5, 5]
-                        },
+                        grid: { color: '#edf2f7', borderDash: [5, 5] },
                         ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
                     }
                 }
@@ -51,99 +43,123 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // [FEATURE] Thực hiện Fetch API để tải dữ liệu (Giả lập gọi Location API)
-    // Nếu ứng dụng Mobile gọi API bằng JWT, trên web chúng ta thao tác tương tự.
-    fetchLocationsData();
+    // 1. TÍNH NĂNG ĐĂNG XUẤT (LOGOUT)
+    const logoutBtn = document.querySelector('.text-danger');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem("jwt_token");
+
+            if (token) {
+                try {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } catch (err) { console.error("[LOGOUT_ERROR]", err); }
+            }
+
+            // Xóa rác, đưa về Login
+            localStorage.removeItem("jwt_token");
+            document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/admin-login";
+        });
+    }
+
+    // 2. TÍNH NĂNG CẤP QUYỀN (THÊM TÀI KHOẢN)
+    const addUserBtn = document.querySelector('.btn-cyber');
+    if (addUserBtn) {
+        addUserBtn.addEventListener('click', async () => {
+            const username = prompt("Nhập tên đăng nhập cho tài khoản mới:");
+            if (!username || username.trim() === "") return;
+
+            const password = prompt("Nhập mật khẩu (tối thiểu 6 ký tự):");
+            if (!password || password.trim() === "") return;
+
+            const originalHtml = addUserBtn.innerHTML;
+            addUserBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>ĐANG XỬ LÝ...';
+            addUserBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username.trim(), password: password.trim() })
+                });
+
+                const responseText = await response.text();
+                if (response.ok) {
+                    window.showCyberToast("THÀNH CÔNG", "Tạo tài khoản thành công!", "success");
+                    setTimeout(() => window.location.reload(), 1500); // Reload để thấy user mới
+                } else {
+                    window.showCyberToast("LỖI", responseText || "Tên đăng nhập đã tồn tại!", "error");
+                }
+            } catch (error) {
+                window.showCyberToast("MẤT KẾT NỐI", "Không thể kết nối máy chủ", "error");
+            } finally {
+                addUserBtn.innerHTML = originalHtml;
+                addUserBtn.disabled = false;
+            }
+        });
+    }
 });
 
-async function fetchLocationsData() {
-    // Lưu ý: Route này dùng để test Fetch API theo luồng yêu cầu ở phần Mobile.
-    const token = localStorage.getItem("jwt_token"); // Giả định token lưu ở localStorage
-    if (!token) return;
+// 3. TÍNH NĂNG KHÓA / MỞ TÀI KHOẢN (Global Window Scope)
+window.toggleUserStatus = async function(userId, checkboxElement) {
+    const originalState = !checkboxElement.checked;
+    checkboxElement.disabled = true;
 
     try {
-        const response = await fetch('/api/v1/locations', {
-            method: 'GET',
+        const token = localStorage.getItem("jwt_token");
+        const response = await fetch(`/api/admin/users/${userId}/toggle-lock`, {
+            method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': token ? `Bearer ${token}` : '',
                 'Content-Type': 'application/json'
             }
         });
 
+        const responseText = await response.text();
         if (response.ok) {
-            const data = await response.json();
-            console.log("[FETCH_SUCCESS] Locations loaded:", data);
-            // Logic DOM Manipulation để render data ra bảng có thể viết tiếp tại đây
+            window.showCyberToast("SYSTEM", responseText, "success");
         } else {
-            console.error("[FETCH_ERROR] Unauthorized or limit reached.");
+            window.showCyberToast("LỖI TRUY CẬP", responseText || "Hành động bị từ chối.", "error");
+            checkboxElement.checked = originalState;
         }
     } catch (error) {
-        console.error("[NETWORK_ERROR]", error);
+        window.showCyberToast("MẤT KẾT NỐI", "Lỗi mạng / Server không phản hồi.", "error");
+        checkboxElement.checked = originalState;
+    } finally {
+        checkboxElement.disabled = false;
     }
+};
 
-    async function toggleUserStatus(userId, checkboxElement) {
-        // Lưu lại trạng thái gốc phòng trường hợp API gọi lỗi thì hoàn tác
-        const originalState = !checkboxElement.checked;
+// 4. HÀM RENDER TOAST MESSAGE
+window.showCyberToast = function(title, message, type) {
+    const container = document.getElementById("cyber-toast-container");
+    if (!container) return;
 
-        // Tạm khóa nút bấm để tránh spam click
-        checkboxElement.disabled = true;
+    const toast = document.createElement("div");
+    toast.className = `cyber-toast ${type}`;
 
-        try {
-            // Lấy token JWT từ LocalStorage (Bắt buộc phải có để gọi API bảo mật)
-            const token = localStorage.getItem("jwt_token");
+    const icon = type === 'success'
+        ? '<i class="fa-solid fa-check text-primary me-2"></i>'
+        : '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>';
 
-            const response = await fetch(`/api/admin/users/${userId}/toggle-lock`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': token ? `Bearer ${token}` : '',
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const responseText = await response.text();
-
-            if (response.ok) {
-                // API thành công
-                showCyberToast("SYSTEM", responseText, "success");
-            } else {
-                // Lỗi 403 (Không có quyền) hoặc lỗi hệ thống
-                showCyberToast("LỖI TRUY CẬP", responseText || "Không thể thực hiện hành động này.", "error");
-                checkboxElement.checked = originalState; // Hoàn tác UI
-            }
-        } catch (error) {
-            showCyberToast("MẤT KẾT NỐI", "Lỗi mạng hoặc server không phản hồi.", "error");
-            checkboxElement.checked = originalState; // Hoàn tác UI
-        } finally {
-            // Mở khóa nút bấm
-            checkboxElement.disabled = false;
-        }
-    }
-
-// Hàm render Toast Message sắc nét
-    function showCyberToast(title, message, type) {
-        const container = document.getElementById("cyber-toast-container");
-        if (!container) return;
-
-        const toast = document.createElement("div");
-        toast.className = `cyber-toast ${type}`;
-
-        // Icon thay đổi theo trạng thái
-        const icon = type === 'success' ? '<i class="fa-solid fa-check text-primary me-2"></i>' : '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>';
-
-        toast.innerHTML = `
+    toast.innerHTML = `
         <div class="fw-bold mb-1" style="font-size: 0.85rem; letter-spacing: 1px;">
             ${icon} [${title}]
         </div>
         <div style="font-size: 0.95rem; color: #8b978f;">${message}</div>
     `;
 
-        container.appendChild(toast);
-
-        // Tự động hủy sau 3 giây
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => toast.remove(), 300); // Đợi CSS transition chạy xong
-        }, 3000);
-    }
-}
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+};
