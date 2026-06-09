@@ -1,5 +1,6 @@
 package com.example.weather_ai.controller.api;
 
+import com.example.weather_ai.dto.ApiResponse;
 import com.example.weather_ai.dto.JwtResponse;
 import com.example.weather_ai.dto.LoginRequest;
 import com.example.weather_ai.service.AuthService;
@@ -34,13 +35,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<String>> registerUser(@RequestBody LoginRequest request) {
         authService.register(request.getUsername(), request.getPassword());
-        return ResponseEntity.ok("User registered successfully!");
+        return ResponseEntity.ok(ApiResponse.success("User registered successfully!", null));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<JwtResponse>> authenticateUser(@RequestBody LoginRequest request) {
         try {
             // Spring Security sẽ TỰ ĐỘNG gọi CustomUserDetailsService để lấy user và tự động check mật khẩu mã hóa
             Authentication authentication = authenticationManager.authenticate(
@@ -52,14 +53,14 @@ public class AuthController {
 
             // Tạo JWT và trả về
             String jwt = jwtUtils.generateJwtToken(request.getUsername());
-            return ResponseEntity.ok(new JwtResponse(jwt));
+            return ResponseEntity.ok(ApiResponse.success("Login successful!", new JwtResponse(jwt)));
 
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Tài khoản hoặc mật khẩu không chính xác");
+            return ResponseEntity.status(401).body(ApiResponse.error("Tài khoản hoặc mật khẩu không chính xác"));
         }
     }
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<String>> logoutUser(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
 
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
@@ -72,9 +73,9 @@ public class AuthController {
                 redisTemplate.opsForValue().set("BL_" + jwt, "logout", remainingTime, TimeUnit.MILLISECONDS);
                 System.out.println("Đã đưa Token vào Blacklist Redis: BL_" + jwt);
             }
-            return ResponseEntity.ok("Đăng xuất thành công! Token đã bị vô hiệu hóa.");
+            return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công! Token đã bị vô hiệu hóa.", null));
         }
 
-        return ResponseEntity.badRequest().body("Yêu cầu không hợp lệ hoặc thiếu Token.");
+        return ResponseEntity.badRequest().body(ApiResponse.error("Yêu cầu không hợp lệ hoặc thiếu Token."));
     }
 }

@@ -90,7 +90,42 @@
     <div class="nav-item active"><i class="fa-regular fa-compass"></i></div>
     <div class="nav-fab" id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></div>
     <div class="nav-item"><i class="fa-solid fa-chart-pie"></i></div>
-    <div class="nav-item"><i class="fa-solid fa-user"></i></div>
+    <div class="nav-item" id="userProfileBtn"><i class="fa-solid fa-user"></i></div>
+</div>
+
+<!-- Auth Modal (Login/Register) -->
+<div class="modal-overlay" id="authModal">
+    <div class="modal-content">
+        <i class="fa-solid fa-xmark modal-close" id="closeAuthModal"></i>
+        
+        <div id="loginFormContainer">
+            <div class="modal-header">Đăng Nhập</div>
+            <div class="form-group">
+                <label>Tên đăng nhập</label>
+                <input type="text" id="loginUsername" class="form-control" placeholder="Nhập username...">
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="Nhập mật khẩu...">
+            </div>
+            <button class="btn-auth" id="btnLoginSubmit">Đăng Nhập</button>
+            <div class="auth-switch">Chưa có tài khoản? <span id="switchToRegister">Đăng ký ngay</span></div>
+        </div>
+
+        <div id="registerFormContainer" style="display: none;">
+            <div class="modal-header">Đăng Ký</div>
+            <div class="form-group">
+                <label>Tên đăng nhập</label>
+                <input type="text" id="registerUsername" class="form-control" placeholder="Tạo username...">
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="registerPassword" class="form-control" placeholder="Tạo mật khẩu...">
+            </div>
+            <button class="btn-auth" id="btnRegisterSubmit">Đăng Ký</button>
+            <div class="auth-switch">Đã có tài khoản? <span id="switchToLogin">Đăng nhập</span></div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -104,10 +139,102 @@
             });
         });
 
-        // 2. Xử lý nút Thêm địa điểm (Icon Dấu +)
-        document.getElementById('addLocationBtn').addEventListener('click', () => {
+        // Xử lý Modal Đăng nhập/Đăng ký
+        const authModal = document.getElementById('authModal');
+        const loginForm = document.getElementById('loginFormContainer');
+        const registerForm = document.getElementById('registerFormContainer');
+
+        document.getElementById('userProfileBtn').addEventListener('click', () => {
+            authModal.classList.add('active');
+        });
+        document.getElementById('closeAuthModal').addEventListener('click', () => {
+            authModal.classList.remove('active');
+        });
+        document.getElementById('switchToRegister').addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        });
+        document.getElementById('switchToLogin').addEventListener('click', () => {
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+
+        // Gọi API Đăng ký
+        document.getElementById('btnRegisterSubmit').addEventListener('click', async () => {
+            const u = document.getElementById('registerUsername').value;
+            const p = document.getElementById('registerPassword').value;
+            if(!u || !p) return alert('Vui lòng điền đủ thông tin!');
+            try {
+                let res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                let json = await res.json();
+                if (json.success) {
+                    alert('Đăng ký thành công! Vui lòng đăng nhập.');
+                    document.getElementById('switchToLogin').click();
+                } else {
+                    alert('Lỗi: ' + json.message);
+                }
+            } catch (err) { alert('Lỗi kết nối máy chủ!'); }
+        });
+
+        // Gọi API Đăng nhập
+        document.getElementById('btnLoginSubmit').addEventListener('click', async () => {
+            const u = document.getElementById('loginUsername').value;
+            const p = document.getElementById('loginPassword').value;
+            if(!u || !p) return alert('Vui lòng điền đủ thông tin!');
+            try {
+                let res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                let json = await res.json();
+                if (json.success) {
+                    alert('Đăng nhập thành công!');
+                    localStorage.setItem('jwtToken', json.data.jwt);
+                    authModal.classList.remove('active');
+                } else {
+                    alert('Lỗi: ' + json.message);
+                }
+            } catch (err) { alert('Lỗi kết nối máy chủ!'); }
+        });
+
+        // 2. Xử lý nút Thêm địa điểm gọi API thật
+        document.getElementById('addLocationBtn').addEventListener('click', async () => {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                alert('Vui lòng đăng nhập để lưu địa điểm yêu thích!');
+                authModal.classList.add('active'); // Mở popup đăng nhập
+                return;
+            }
+            
             const cityName = document.getElementById('cityName').innerText;
-            alert(`Đã lưu "${cityName}" vào danh sách yêu thích! (Mock)`);
+            if(cityName === "Đang tìm...") return;
+
+            try {
+                let res = await fetch('/api/v1/locations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        cityName: cityName,
+                        latitude: 0,
+                        longitude: 0,
+                        alias: 'Yêu thích'
+                    })
+                });
+                let json = await res.json();
+                if (json.success) {
+                    alert("Thành công: " + json.data);
+                } else {
+                    alert('Lỗi: ' + json.message);
+                }
+            } catch (err) { alert('Lỗi hệ thống khi lưu địa điểm!'); }
         });
 
         // 3. Xử lý nút Tìm Kiếm (Kính lúp) & Giả lập Fake API
