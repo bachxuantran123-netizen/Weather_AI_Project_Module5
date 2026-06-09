@@ -50,7 +50,12 @@
                             <tr th:each="u : ${users}">
                                 <td th:text="'#' + ${u.id}">#1</td>
                                 <td class="fw-bold text-primary" th:text="${u.username}">admin</td>
-                                <td><span class="badge cyber-badge">MEMBER</span></td>
+                                <td>
+                                    <!-- Hiển thị vai trò động và thêm class màu dựa trên vai trò thực tế từ database -->
+                                    <span class="badge cyber-badge"
+                                          th:classappend="${u.role == 'ADMIN' ? 'bg-admin' : 'bg-user'}"
+                                          th:text="${u.role}">MEMBER</span>
+                                </td>
                                 <td>
                                     <label class="cyber-switch">
                                         <input type="checkbox"

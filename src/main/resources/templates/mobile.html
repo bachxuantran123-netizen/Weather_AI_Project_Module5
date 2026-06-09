@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
@@ -7,98 +7,29 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        body {
-            margin: 0; padding: 0;
-            background: linear-gradient(180deg, #0f1c3f 0%, #291b54 50%, #3e1b60 100%);
-            color: #ffffff;
-            font-family: 'Nunito', sans-serif;
-            min-height: 100vh;
-            display: flex; flex-direction: column;
-            /* Căn lề an toàn cho Tai thỏ (Notch) */
-            padding-top: env(safe-area-inset-top);
-        }
-
-        /* Ẩn thanh cuộn */
-        ::-webkit-scrollbar { display: none; }
-
-        .header-nav { display: flex; justify-content: space-between; padding: 20px; font-size: 1.4rem; color: #b5b8d9;}
-
-        .main-weather { text-align: center; margin-top: 5px; padding: 0 20px; }
-        .city-name { font-size: 2.2rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.3);}
-        .temperature { font-size: 6rem; font-weight: 300; line-height: 1; margin-top: 5px; text-shadow: 0 4px 15px rgba(0,0,0,0.3);}
-        .condition { font-size: 1.2rem; color: #d0d2eb; margin-top: 10px; }
-        .high-low { font-size: 1rem; color: #a2a5cc; font-weight: 600; margin-top: 8px;}
-
-        .scrollable-content {
-            flex-grow: 1; overflow-y: auto; padding: 20px;
-            padding-bottom: calc(100px + env(safe-area-inset-bottom)); /* Không đè lên Bottom Nav */
-            display: flex; flex-direction: column; gap: 15px;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 25px; padding: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-        }
-        .card-title { font-size: 0.85rem; color: #b5b8d9; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; }
-        .card-title i { margin-right: 8px; color: #8cb4ff; font-size: 1.1rem; }
-
-        .ai-advice-card { background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(217, 70, 239, 0.1) 100%); border-color: rgba(217, 70, 239, 0.3); }
-        .ai-title { color: #d946ef !important; }
-        .ai-content { font-size: 1rem; line-height: 1.5; color: #f1f2ff; }
-        .ai-tags { margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap;}
-        .ai-tag { background: rgba(217, 70, 239, 0.2); color: #f0abfc; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; }
-
-        .hourly-forecast { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 5px;}
-        .hour-item { display: flex; flex-direction: column; align-items: center; min-width: 55px; }
-        .hour-item .time { font-size: 0.95rem; font-weight: 600; margin-bottom: 10px; color: #d0d2eb;}
-        .hour-item i { font-size: 1.6rem; margin-bottom: 10px; color: #ffcc00;}
-        .hour-item .temp { font-size: 1.25rem; font-weight: 700; }
-        .hour-item.active { background: rgba(255, 255, 255, 0.15); padding: 12px 0; border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); margin-top: -12px; }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .small-card .value { font-size: 1.8rem; font-weight: 700; margin-top: 5px;}
-        .small-card .desc { font-size: 0.9rem; color: #b5b8d9;}
-
-        /* BOTTOM NAVIGATION BAR CỐ ĐỊNH */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 75px;
-            background: rgba(20, 15, 45, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex; justify-content: space-around; align-items: center;
-            padding-bottom: env(safe-area-inset-bottom); /* An toàn cho thanh vuốt ngang dưới đáy */
-        }
-        .nav-item { color: #8c8fae; font-size: 1.4rem; cursor: pointer; }
-        .nav-item.active { color: #ffffff; text-shadow: 0 0 15px rgba(255,255,255,0.5);}
-        .nav-fab {
-            background: linear-gradient(135deg, #8b5cf6, #d946ef); width: 55px; height: 55px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem;
-            box-shadow: 0 5px 20px rgba(217, 70, 239, 0.4); transform: translateY(-20px); border: 3px solid #1a1a2e;
-        }
-    </style>
+    <link th:href="@{/css/mobile.css}" rel="stylesheet" />
 </head>
 <body>
 
 <div class="header-nav">
-    <i class="fa-solid fa-plus"></i>
+    <i class="fa-solid fa-plus" id="addLocationBtn"></i>
     <i class="fa-solid fa-ellipsis-vertical"></i>
 </div>
 
 <div class="main-weather">
-    <div class="city-name">Hà Nội</div>
-    <div class="temperature">24°</div>
-    <div class="condition">Mưa Rào Rải Rác</div>
-    <div class="high-low">H:28° &nbsp; L:22°</div>
+    <div class="city-name" id="cityName">Hà Nội</div>
+    <div class="temperature"><span id="temperature">24</span>°</div>
+    <div class="condition" id="condition">Mưa Rào Rải Rác</div>
+    <div class="high-low">H:<span id="tempHigh">28</span>° &nbsp; L:<span id="tempLow">22</span>°</div>
 </div>
 
 <div class="scrollable-content">
     <div class="glass-card ai-advice-card">
         <div class="card-title ai-title"><i class="fa-solid fa-robot"></i> AI TƯ VẤN TRANG PHỤC</div>
-        <div class="ai-content">
+        <div class="ai-content" id="aiAdviceContent">
             "Trời đang mưa rào và khá ẩm ướt. Nên mặc áo khoác gió chống nước và mang theo ô. Tránh mang giày vải."
         </div>
-        <div class="ai-tags">
+        <div class="ai-tags" id="aiTags">
             <span class="ai-tag"><i class="fa-solid fa-umbrella"></i> Ô che mưa</span>
             <span class="ai-tag"><i class="fa-solid fa-cloud-showers-heavy"></i> Áo mưa</span>
         </div>
@@ -133,22 +64,22 @@
     <div class="grid-2">
         <div class="glass-card small-card">
             <div class="card-title"><i class="fa-solid fa-sun"></i> UV Index</div>
-            <div class="value">4</div>
-            <div class="desc">Trung bình</div>
+            <div class="value" id="uvIndex">4</div>
+            <div class="desc" id="uvDesc">Trung bình</div>
         </div>
         <div class="glass-card small-card">
             <div class="card-title"><i class="fa-solid fa-droplet"></i> Độ ẩm</div>
-            <div class="value">82%</div>
+            <div class="value"><span id="humidity">82</span>%</div>
             <div class="desc">Khá ẩm ướt</div>
         </div>
         <div class="glass-card small-card">
             <div class="card-title"><i class="fa-solid fa-wind"></i> Sức gió</div>
-            <div class="value">12 <span style="font-size: 1rem;">km/h</span></div>
+            <div class="value"><span id="windSpeed">12</span> <span style="font-size: 1rem;">km/h</span></div>
             <div class="desc">Gió đông bắc</div>
         </div>
         <div class="glass-card small-card">
             <div class="card-title"><i class="fa-solid fa-eye"></i> Tầm nhìn</div>
-            <div class="value">8 <span style="font-size: 1rem;">km</span></div>
+            <div class="value"><span id="visibility">8</span> <span style="font-size: 1rem;">km</span></div>
             <div class="desc">Sương mù nhẹ</div>
         </div>
     </div>
@@ -157,10 +88,106 @@
 <div class="bottom-nav">
     <div class="nav-item"><i class="fa-solid fa-map-location-dot"></i></div>
     <div class="nav-item active"><i class="fa-regular fa-compass"></i></div>
-    <div class="nav-fab"><i class="fa-solid fa-magnifying-glass"></i></div>
+    <div class="nav-fab" id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></div>
     <div class="nav-item"><i class="fa-solid fa-chart-pie"></i></div>
     <div class="nav-item"><i class="fa-solid fa-user"></i></div>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // 1. Xử lý Bottom Navigation
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // 2. Xử lý nút Thêm địa điểm (Icon Dấu +)
+        document.getElementById('addLocationBtn').addEventListener('click', () => {
+            const cityName = document.getElementById('cityName').innerText;
+            alert(`Đã lưu "${cityName}" vào danh sách yêu thích! (Mock)`);
+        });
+
+        // 3. Xử lý nút Tìm Kiếm (Kính lúp) & Giả lập Fake API
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const city = prompt("Nhập tên thành phố muốn xem thời tiết:");
+            if (city && city.trim() !== "") {
+                fetchMockWeather(city.trim());
+            }
+        });
+
+        function fetchMockWeather(city) {
+            // Hiển thị trạng thái đang tải
+            document.getElementById('cityName').innerText = "Đang tìm...";
+            document.getElementById('temperature').innerText = "--";
+            document.getElementById('condition').innerText = "Đang kết nối vệ tinh...";
+            document.getElementById('aiAdviceContent').innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> AI đang phân tích dữ liệu...";
+            document.getElementById('aiTags').innerHTML = "";
+
+            // Giả lập độ trễ mạng 1.5 giây
+            setTimeout(() => {
+                // Tạo dữ liệu giả (Mock Data) chuẩn DTO mà ta vừa thiết kế ở Backend
+                const mockResponse = {
+                    cityName: city.charAt(0).toUpperCase() + city.slice(1),
+                    temperature: (Math.random() * 15 + 15).toFixed(1), // Nhiệt độ ngẫu nhiên 15 - 30 độ
+                    condition: "Nắng Đẹp",
+                    aiAdvice: {
+                        advice: `Trời quang mây tạnh tại ${city}, rất thích hợp để ra ngoài đi dạo. Đừng quên mang kính râm!`,
+                        items_to_bring: ["Kính râm", "Mũ lưỡi trai", "Nước suối"],
+                        warnings: ["Chỉ số UV có thể tăng cao vào buổi trưa."]
+                    }
+                };
+
+                // Nếu nhiệt độ dưới 20 độ thì cho thời tiết Mưa/Lạnh
+                if (mockResponse.temperature < 20) {
+                    mockResponse.condition = "Mưa Lạnh";
+                    mockResponse.aiAdvice = {
+                        advice: `Nhiệt độ khá thấp tại ${city}, có mưa phùn. Hãy mặc áo ấm và mang ô.`,
+                        items_to_bring: ["Áo khoác len", "Ô che mưa"],
+                        warnings: ["Đường trơn trượt", "Dễ cảm lạnh"]
+                    };
+                }
+
+                updateUI(mockResponse);
+            }, 1500);
+        }
+
+        // 4. Hàm cập nhật giao diện (Render JSON -> HTML)
+        function updateUI(data) {
+            // Cập nhật thông số cơ bản
+            document.getElementById('cityName').innerText = data.cityName;
+            document.getElementById('temperature').innerText = Math.round(data.temperature);
+            document.getElementById('condition').innerText = data.condition;
+
+            // Random vài chỉ số phụ
+            document.getElementById('tempHigh').innerText = Math.round(data.temperature) + 4;
+            document.getElementById('tempLow').innerText = Math.round(data.temperature) - 3;
+            document.getElementById('uvIndex').innerText = data.temperature > 25 ? 8 : 3;
+            document.getElementById('uvDesc').innerText = data.temperature > 25 ? "Rất cao" : "Thấp";
+
+            // Cập nhật AI Advice
+            const aiData = data.aiAdvice;
+            document.getElementById('aiAdviceContent').innerText = `"${aiData.advice}"`;
+
+            // Render mảng items_to_bring và warnings thành các thẻ tag
+            let tagsHtml = '';
+
+            aiData.items_to_bring.forEach(item => {
+                tagsHtml += `<span class="ai-tag"><i class="fa-solid fa-check text-success"></i> ${item}</span>`;
+            });
+
+            aiData.warnings.forEach(warning => {
+                // Đổi màu cảnh báo sang tông đỏ/cam
+                tagsHtml += `<span class="ai-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> ${warning}
+                             </span>`;
+            });
+
+            document.getElementById('aiTags').innerHTML = tagsHtml;
+        }
+    });
+</script>
 </body>
 </html>
