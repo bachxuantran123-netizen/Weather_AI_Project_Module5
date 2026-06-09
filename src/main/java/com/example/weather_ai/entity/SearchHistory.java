@@ -1,5 +1,6 @@
 package com.example.weather_ai.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class SearchHistory {
     // Liên kết với người dùng nào đã tra cứu
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
+    @JsonIgnore
     private Account account;
 
     @Column(name = "city_name", nullable = false)
