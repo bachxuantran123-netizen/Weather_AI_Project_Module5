@@ -3,9 +3,11 @@ package com.example.weather_ai.controller.api;
 import com.example.weather_ai.dto.ApiResponse;
 import com.example.weather_ai.dto.JwtResponse;
 import com.example.weather_ai.dto.LoginRequest;
+import com.example.weather_ai.dto.TokenRefreshRequest;
 import com.example.weather_ai.service.AuthService;
 import com.example.weather_ai.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,19 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
     private final StringRedisTemplate redisTemplate;
-
-    public AuthController(AuthService authService, JwtUtils jwtUtils, AuthenticationManager authenticationManager,  StringRedisTemplate redisTemplate) {
-        this.authService = authService;
-        this.jwtUtils = jwtUtils;
-        this.authenticationManager = authenticationManager;
-        this.redisTemplate = redisTemplate;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> registerUser(@RequestBody LoginRequest request) {
@@ -41,22 +37,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<JwtResponse>> authenticateUser(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Spring Security sẽ TỰ ĐỘNG gọi CustomUserDetailsService để lấy user và tự động check mật khẩu mã hóa
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
+            JwtResponse jwtResponse = authService.login(request);
 
-            // Nếu không lỗi tức là pass, lưu vào Context
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Tạo JWT và trả về
-            String jwt = jwtUtils.generateJwtToken(request.getUsername());
-            return ResponseEntity.ok(ApiResponse.success("Login successful!", new JwtResponse(jwt)));
-
+            return ResponseEntity.ok(ApiResponse.success("Đăng nhập thành công!", jwtResponse));
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Tài khoản hoặc mật khẩu không chính xác"));
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
     @PostMapping("/logout")
@@ -77,5 +64,13 @@ public class AuthController {
         }
 
         return ResponseEntity.badRequest().body(ApiResponse.error("Yêu cầu không hợp lệ hoặc thiếu Token."));
+    }
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success("Làm mới token thành công", authService.refreshToken(request)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
     }
 }
