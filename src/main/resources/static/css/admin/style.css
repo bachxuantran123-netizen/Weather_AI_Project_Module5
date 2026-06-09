@@ -1,230 +1,215 @@
-/* style.css */
+/* =========================================
+   THEME: SOFT LAVENDER & OVERSIZED UI
+=========================================== */
+/* 1. NỀN & KHÓA CỨNG KÍCH THƯỚC MÀN HÌNH */
 body {
-    background-color: #0f1923; /* Nền tối nhám */
-    color: #ece8e1;
-    font-family: 'Consolas', 'Courier New', monospace;
-    overflow-x: hidden;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    color: #2d3748;
+    font-family: 'Nunito', 'Segoe UI', -apple-system, sans-serif;
+    font-size: 1.05rem;
+    margin: 0;
+    padding: 0;
+    height: 100vh; /* Bắt buộc bằng 100% chiều cao màn hình */
+    width: 100vw;  /* Bắt buộc bằng 100% chiều rộng màn hình */
+    overflow: hidden; /* CẤM cuộn toàn bộ trang web */
 }
 
-/* Tắt toàn bộ border-radius mặc định của Bootstrap */
-* {
-    border-radius: 0 !important;
+* { border-radius: initial; }
+
+/* 2. CẤU TRÚC WRAPPER TRÀN VIỀN */
+#wrapper {
+    display: flex;
+    height: 100vh; /* Kéo dãn wrapper kín màn hình */
+    width: 100vw;
 }
 
-/* Sidebar Styling */
+/* 3. SIDEBAR - CỐ ĐỊNH FULL CHIỀU CAO */
 #sidebar {
-    min-width: 250px;
-    max-width: 250px;
-    min-height: 100vh;
-    background-color: #111;
-    border-right: 2px solid #333;
-    transition: all 0.2s ease-in-out;
+    min-width: 280px;
+    max-width: 280px;
+    height: 100vh; /* Tràn đáy màn hình */
+    background-color: #ffffff !important;
+    box-shadow: 4px 0 24px rgba(109, 40, 217, 0.06) !important;
+    border-right: none !important;
+    z-index: 10;
+    display: flex;
+    flex-direction: column; /* Để đẩy nút Đăng xuất xuống đáy */
+}
+
+/* Đẩy mục Đăng xuất dính chặt xuống đáy Sidebar */
+#sidebar .list-group {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+#sidebar .list-group a.text-danger {
+    margin-top: auto !important; /* Tự động đẩy xuống dưới cùng */
+    margin-bottom: 20px;
 }
 
 #sidebar .sidebar-heading {
-    color: #ff4655 !important;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    border-bottom: 2px solid #ff4655 !important;
+    color: #1a202c !important;
+    border-bottom: 1px solid #f3f0ff !important;
+    font-weight: 800;
+    font-size: 1.4rem !important;
+    padding: 25px 0 !important;
+    letter-spacing: 0.5px;
 }
 
 #sidebar .nav-link {
-    color: #8b978f;
-    padding: 15px 20px;
-    margin: 4px 15px;
-    text-transform: uppercase;
-    font-weight: bold;
-    border: 1px solid transparent;
-    transition: 0.15s;
+    color: #718096;
+    padding: 14px 22px;
+    margin: 8px 15px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
 }
 
-#sidebar .nav-link:hover, #sidebar .nav-link.active {
-    background-color: rgba(255, 70, 85, 0.1);
-    color: #ff4655;
-    border: 1px solid #ff4655;
-    box-shadow: 0 0 10px rgba(255, 70, 85, 0.3);
+#sidebar .nav-link:hover {
+    background-color: #f5f3ff;
+    color: #8b5cf6;
+    transform: translateX(5px);
 }
 
-/* Main Content Styling */
+#sidebar .nav-link.active {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+}
+
+/* 4. KHU VỰC NỘI DUNG (CÓ THANH CUỘN RIÊNG) */
+#page-content-wrapper {
+    flex-grow: 1;
+    height: 100vh; /* Chiếm toàn bộ không gian còn lại */
+    overflow-y: auto; /* Kích hoạt thanh cuộn dọc chỉ cho khu vực này */
+    overflow-x: hidden;
+    padding-bottom: 40px; /* Tránh thẻ dưới cùng bị sát mép màn hình */
+}
+
+/* Tối đa hóa Container để các thẻ bung rộng ra 2 bên */
+.container-fluid {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    max-width: 1800px; /* Giới hạn độ rộng cực đại trên màn hình Ultrawide */
+    margin: 0 auto;
+}
+
+/* 5. NAVBAR */
 .navbar-custom {
-    background-color: #0f1923;
-    border-bottom: 1px solid #333;
+    background: transparent !important;
+    border-bottom: none !important;
+    padding: 25px 2rem !important; /* Căn chỉnh mép bằng với Container */
 }
-
 .navbar-custom h4 {
-    color: #00eaff !important;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    color: #2d3748 !important;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: -0.5px;
 }
 
-/* Stat Cards */
-.stat-card {
-    background-color: #1a2733;
-    border: 1px solid #333;
-    /* Hiệu ứng vát góc dưới bên phải - phong cách UI Game */
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
-    transition: transform 0.15s, border-color 0.15s;
+/* 4. CARDS - BO GÓC SÂU HƠN, BÓNG MỀM HƠN */
+.card, .stat-card, .agent-card {
+    background-color: #ffffff !important;
+    border: none !important;
+    border-radius: 28px !important;
+    box-shadow: 0 12px 35px rgba(109, 40, 217, 0.05) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.stat-card:hover {
-    transform: translateY(-3px);
-    border-color: #00eaff;
-    box-shadow: 0 0 15px rgba(0, 234, 255, 0.2) !important;
+.stat-card:hover, .agent-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 45px rgba(109, 40, 217, 0.1) !important;
 }
 
-.stat-card h6 {
-    color: #8b978f !important;
-}
-
-.stat-card h3 {
-    color: #ece8e1 !important;
-}
-
-.icon-box {
-    width: 55px;
-    height: 55px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    color: #111;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-
-.bg-gradient-primary { background: #00eaff; }
-.bg-gradient-success { background: #00ff66; }
-.bg-gradient-warning { background: #ff4655; color: #fff;}
-
-/* Panels & Tables */
-.card {
-    background-color: #1a2733;
-    border: 1px solid #333;
-}
 .card-header {
-    background-color: #111 !important;
-    border-bottom: 1px solid #333 !important;
+    background: transparent !important;
+    border-bottom: 1px solid #f3f0ff !important;
+    padding: 20px 25px;
 }
 .card-header h5 {
-    color: #ece8e1 !important;
-    text-transform: uppercase;
-    font-size: 1rem;
-    letter-spacing: 1px;
+    color: #2d3748 !important;
+    font-weight: 800;
+    font-size: 1.25rem;
 }
 
-.table-custom {
-    color: #ece8e1;
+/* Chữ trong Stat Card */
+.stat-card h6 { color: #8b5cf6 !important; font-weight: 700; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;}
+.stat-card h3 { color: #1a202c !important; font-weight: 800; font-size: 2.4rem;}
+
+/* Các Icon thống kê */
+.icon-box {
+    width: 65px; height: 65px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    border-radius: 20px !important;
 }
+.bg-gradient-primary { background: #f5f3ff !important; color: #8b5cf6 !important; }
+.bg-gradient-success { background: #e6fffa !important; color: #38b2ac !important; }
+.bg-gradient-warning { background: #fffaf0 !important; color: #dd6b20 !important; }
+
+/* 5. TABLE - DỄ ĐỌC & THOÁNG ĐÃNG */
+.table-custom { color: #4a5568; margin-bottom: 0; }
 .table-custom th {
-    background-color: #111;
-    color: #8b978f;
-    border-bottom: 2px solid #ff4655;
+    background-color: transparent !important;
+    color: #a0aec0 !important;
+    font-weight: 800;
     text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #f3f0ff !important;
+    padding: 20px 15px;
 }
 .table-custom td {
-    border-bottom: 1px solid #333;
+    background-color: transparent !important;
+    border-bottom: 1px solid #f3f0ff !important;
     vertical-align: middle;
+    padding: 20px 15px;
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 1.05rem;
 }
-.table-custom tbody tr:hover {
-    background-color: rgba(0, 234, 255, 0.05);
+.table-custom tbody tr:hover td {
+    background-color: #faf9ff !important;
 }
-.text-primary { color: #00eaff !important; }
-.badge.bg-success { background-color: #00ff66 !important; color: #111; font-weight: bold; }
-/* --- CYBERPUNK TOGGLE SWITCH --- */
+
+/* 6. NÚT CÔNG TẮC (TOGGLE SWITCH) - PHÓNG TO */
 .cyber-switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 24px;
+    position: relative; display: inline-block;
+    width: 56px; height: 32px;
 }
-
-.cyber-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
+.cyber-switch input { opacity: 0; width: 0; height: 0; }
 .cyber-switch .slider {
-    position: absolute;
-    cursor: pointer;
+    position: absolute; cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(255, 70, 85, 0.2); /* Đỏ mờ (Trạng thái tắt/Khóa) */
-    border: 1px solid #ff4655;
-    transition: .3s;
-    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+    background-color: #e2e8f0;
+    border-radius: 34px;
+    transition: .4s;
 }
-
 .cyber-switch .slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #ff4655; /* Khối vuông đỏ */
-    transition: .3s;
-    clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+    position: absolute; content: "";
+    height: 24px; width: 24px;
+    left: 4px; bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
-
-/* Khi Input Checked (Trạng thái Mở khóa) */
 .cyber-switch input:checked + .slider {
-    background-color: rgba(0, 234, 255, 0.1); /* Xanh neon mờ */
-    border-color: #00eaff;
-    box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
 }
-
 .cyber-switch input:checked + .slider:before {
-    transform: translateX(32px);
-    background-color: #00eaff;
+    transform: translateX(24px);
 }
 
-/* --- CYBER BUTTON & BADGES --- */
-.btn-cyber {
-    background: transparent;
-    color: #00eaff;
-    border: 1px solid #00eaff;
-    padding: 6px 15px;
-    font-weight: bold;
-    text-transform: uppercase;
-    transition: 0.2s;
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
-}
-.btn-cyber:hover {
-    background: #00eaff;
-    color: #0f1923;
-    box-shadow: 0 0 15px rgba(0, 234, 255, 0.4);
-}
-.cyber-badge {
-    background: #1a2733;
-    color: #8b978f;
-    border: 1px solid #333;
-    font-family: 'Consolas', monospace;
-}
-
-/* --- CYBER TOAST NOTIFICATION --- */
-#cyber-toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+/* 7. TOAST NOTIFICATION */
 .cyber-toast {
-    background-color: #0f1923;
-    border-left: 4px solid #00eaff;
-    color: #ece8e1;
-    padding: 15px 20px;
-    font-family: 'Consolas', monospace;
-    min-width: 250px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-    animation: slideIn 0.3s ease-out forwards;
+    background: #ffffff !important;
+    border-left: 5px solid #8b5cf6;
+    color: #2d3748;
+    border-radius: 14px;
+    padding: 18px 25px;
+    box-shadow: 0 10px 30px rgba(109, 40, 217, 0.15);
+    font-size: 1.05rem;
 }
-.cyber-toast.error {
-    border-left-color: #ff4655;
-}
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
+.cyber-toast.error { border-left-color: #e53e3e; }

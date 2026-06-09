@@ -11,17 +11,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 datasets: [{
                     label: 'Requests',
                     data: window.dynamicChartData.length > 0 ? window.dynamicChartData : [12, 19, 30, 25, 42, 38, 50],
-                    borderColor: '#ff4655', // Đỏ Valorant
-                    backgroundColor: 'rgba(255, 70, 85, 0.1)',
-                    borderWidth: 2,
-                    tension: 0, // Không uốn cong, nét phải gãy gọn cơ khí
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                    borderWidth: 3,
+                    tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#0f1923',
-                    pointBorderColor: '#00eaff', // Xanh Neon
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#8b5cf6',
                     pointBorderWidth: 2,
-                    pointRadius: 4,
+                    pointRadius: 5,
                     pointHoverRadius: 7,
-                    pointStyle: 'rect' // Khối vuông thay vì hình tròn
+                    pointStyle: 'circle'
                 }]
             },
             options: {
@@ -32,13 +32,19 @@ document.addEventListener("DOMContentLoaded", function() {
                 },
                 scales: {
                     x: {
-                        grid: { color: '#333', drawBorder: true },
-                        ticks: { color: '#8b978f', font: { family: 'Consolas' } }
+                        grid: {
+                            color: '#edf2f7',
+                            drawBorder: false
+                        },
+                        ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: '#333', borderDash: [2, 4] },
-                        ticks: { color: '#8b978f', font: { family: 'Consolas' } }
+                        grid: {
+                            color: '#edf2f7',
+                            borderDash: [5, 5]
+                        },
+                        ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
                     }
                 }
             }

@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC).permitAll()
-                        .requestMatchers("/api/auth/**", "/admin-login").permitAll()
+                        .requestMatchers("/api/auth/**", "/admin-login", "/mobile-preview").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")
