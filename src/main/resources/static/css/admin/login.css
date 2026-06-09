@@ -1,66 +1,82 @@
-/* login.css */
+/* login.css - Theme Glassmorphism */
 body {
-    background-color: #0f1923;
-    color: #ece8e1;
-    font-family: 'Consolas', 'Courier New', monospace;
+    background: linear-gradient(135deg, #0d0a20 0%, #2b184d 100%);
+    color: #ffffff;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0;
 }
+
 .login-box {
-    background-color: #1a2733;
-    border: 1px solid #333;
-    padding: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px 45px;
     width: 100%;
-    max-width: 450px;
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
-    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    max-width: 420px;
+    border-radius: 30px; /* Bo góc cực tròn */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    clip-path: none;
 }
+
+.title-neon {
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 1px;
+    border-bottom: none;
+    margin-bottom: 35px;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
 .cyber-input {
-    background-color: #0f1923;
-    border: 1px solid #333;
-    color: #00eaff;
-    border-radius: 0;
-    padding: 12px 15px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-radius: 16px;
+    padding: 14px 18px;
     transition: 0.3s;
 }
+
 .cyber-input:focus {
-    background-color: #111;
-    border-color: #00eaff;
-    box-shadow: 0 0 10px rgba(0, 234, 255, 0.2);
-    color: #00eaff;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: #b652a6;
+    box-shadow: 0 0 0 3px rgba(182, 82, 166, 0.2);
+    color: #ffffff;
     outline: none;
 }
+
 .cyber-btn {
-    background-color: #ff4655;
+    background: linear-gradient(90deg, #3a2fa8, #b652a6);
     color: #fff;
     border: none;
-    padding: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    padding: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
     width: 100%;
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-    transition: 0.2s;
+    border-radius: 20px;
+    clip-path: none;
+    transition: 0.3s;
+    margin-top: 10px;
 }
+
 .cyber-btn:hover {
-    background-color: #ff5866;
+    background: linear-gradient(90deg, #4b3ec2, #c75eb6);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 70, 85, 0.4);
+    box-shadow: 0 8px 20px rgba(182, 82, 166, 0.4);
 }
-.title-neon {
-    color: #00eaff;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    border-bottom: 2px solid #ff4655;
-    padding-bottom: 10px;
-    margin-bottom: 30px;
-    font-weight: bold;
-}
+
 #error-message {
-    color: #ff4655;
-    font-size: 0.85rem;
+    background: rgba(253, 29, 29, 0.1);
+    color: #ffb3b3;
+    border: 1px solid rgba(253, 29, 29, 0.3);
+    padding: 10px 15px;
+    border-radius: 12px;
+    font-size: 0.9rem;
     display: none;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    text-align: center;
 }
