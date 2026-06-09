@@ -13,5 +13,5 @@ public class WeatherAdviceResponse {
     private String cityName;
     private Double temperature;
     private String condition;
-    private String aiAdvice;
+    private AiAdviceDto aiAdvice;
 }

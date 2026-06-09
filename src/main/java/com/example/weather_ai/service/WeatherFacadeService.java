@@ -16,7 +16,7 @@ public class WeatherFacadeService {
     @Cacheable(
             value = "weatherCache",
             key = "#city",
-            unless = "#result.aiAdvice.contains('LỖI')"
+            unless = "#result.aiAdvice == null || #result.aiAdvice.advice == null || #result.aiAdvice.advice.contains('LỖI')"
     )
     public WeatherAdviceResponse getWeatherWithAdvice(String city) {
         return weatherService.getCurrentWeather(city)
