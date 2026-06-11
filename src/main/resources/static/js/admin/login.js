@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 const resJson = await response.json();
                 if (response.ok && resJson.success) {
-                    const token = resJson.data.token;
+                    const token = resJson.data.accessToken;
 
                     // 1. Lưu JWT vào LocalStorage
                     localStorage.setItem('jwt_token', token);
