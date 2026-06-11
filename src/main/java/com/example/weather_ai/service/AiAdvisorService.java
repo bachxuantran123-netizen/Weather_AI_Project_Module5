@@ -62,9 +62,22 @@ public class AiAdvisorService {
                         String jsonString = response.getCandidates().get(0).getContent().getParts().get(0).getText();
                         return objectMapper.readValue(jsonString, AiAdviceDto.class);
                     } catch (Exception e) {
-                        return new AiAdviceDto("LỖI: Không thể phân tích phản hồi từ AI.", List.of(), List.of());
+                        return new AiAdviceDto("LỖI JSON: Không thể phân tích phản hồi từ AI.", List.of(), List.of());
                     }
                 })
-                .onErrorResume(e -> Mono.just(new AiAdviceDto("🚨 LỖI TỪ GEMINI: " + e.getMessage(), List.of(), List.of())));
+                .onErrorResume(e -> {
+                    // Nếu lỗi do Google trả về (WebClientResponseException), moi chi tiết lỗi ra
+                    if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException webEx) {
+                        System.err.println("🚨 [GOOGLE GEMINI DETAIL ERROR]: " + webEx.getResponseBodyAsString());
+                    } else {
+                        System.err.println("🚨 [DEBUG] LỖI TỪ GEMINI API: " + e.getMessage());
+                    }
+
+                    return Mono.just(new AiAdviceDto(
+                            "Hiện tại hệ thống AI đang bảo trì hoặc mất kết nối. Dưới đây là thông số thời tiết thực tế để bạn tham khảo.",
+                            List.of("Trang phục phù hợp với nhiệt độ", "Vật dụng cá nhân"),
+                            List.of("Chú ý an toàn khi di chuyển")
+                    ));
+                });
     }
 }

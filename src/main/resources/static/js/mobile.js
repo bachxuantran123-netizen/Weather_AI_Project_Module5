@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) { showToast('Lỗi kết nối máy chủ!', 'error'); }
     });
 
-    // Đăng nhập
+    // Đăng nhập (Đã fix triệt để lỗi Undefined Token)
     document.getElementById('btnLoginSubmit').addEventListener('click', async () => {
         const u = document.getElementById('loginUsername').value;
         const p = document.getElementById('loginPassword').value;
@@ -77,30 +77,43 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: u, password: p })
             });
-            if (res.ok) {
-                let json = await res.json();
-                showToast('Đăng nhập thành công!', 'success');
-                const validToken = json.accessToken || json.data?.accessToken;
-                localStorage.setItem('jwtToken', validToken);
+            let json = await res.json();
 
-                authModal.classList.remove('active');
+            if (res.ok && json.success) {
+                showToast('Đăng nhập thành công!', 'success');
+
+                // Gọi chính xác json.data.accessToken theo chuẩn của JwtResponse
+                const validToken = json.data?.accessToken;
+
+                if (validToken && validToken !== 'undefined') {
+                    // Đồng bộ lưu dưới key jwt_token để dùng chung phiên với web Admin
+                    localStorage.setItem('jwt_token', validToken);
+                    authModal.classList.remove('active');
+                } else {
+                    showToast('Lỗi: Server không trả về Token hợp lệ!', 'error');
+                }
             } else {
-                showToast('Sai tên đăng nhập hoặc mật khẩu!', 'error');
+                showToast(json.message || 'Sai tên đăng nhập hoặc mật khẩu!', 'error');
             }
         } catch (err) { showToast('Lỗi kết nối máy chủ!', 'error'); }
     });
 
-    // --- 3. FIX LỖI THÊM ĐỊA ĐIỂM YÊU THÍCH ---
+    // --- 3. THÊM ĐỊA ĐIỂM YÊU THÍCH ---
     document.getElementById('addLocationBtn').addEventListener('click', async () => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token || token === 'undefined') {
+        // Hỗ trợ đọc cả 2 loại key phòng hờ
+        let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+
+        // Chặn tuyệt đối chuỗi rác "undefined"
+        if (!token || token === 'undefined' || token === 'null') {
             showToast('Bạn cần đăng nhập để lưu địa điểm!', 'error');
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('jwtToken');
             authModal.classList.add('active');
             return;
         }
 
         const cityName = document.getElementById('cityName').innerText;
-        if(cityName === "Đang tìm...") return;
+        if(cityName === "Đang tải...") return;
 
         try {
             let res = await fetch('/api/v1/locations', {
@@ -109,11 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                // Đảm bảo số thực (0.0) tránh lỗi parse Double của Backend
                 body: JSON.stringify({ cityName: cityName, latitude: 0.0, longitude: 0.0, alias: 'Yêu thích' })
             });
 
-            // Parse response thông minh (nhận cả Object DTO lẫn String thuần)
             let text = await res.text();
             let jsonResponse;
             try { jsonResponse = JSON.parse(text); } catch(e) { jsonResponse = text; }
@@ -130,96 +141,151 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // --- 4. TÌM KIẾM BẰNG MODAL SIÊU ĐẸP (THAY THẾ PROMPT CŨ) ---
+    // --- 4. TÌM KIẾM MODAL ---
     const searchModal = document.getElementById('searchModal');
     const searchInput = document.getElementById('searchInput');
 
-    // Mở Modal Tìm Kiếm
     document.getElementById('searchBtn').addEventListener('click', () => {
         searchModal.classList.add('active');
-        setTimeout(() => searchInput.focus(), 100); // Tự động focus vào ô nhập liệu
+        setTimeout(() => searchInput.focus(), 100);
     });
 
-    // Đóng Modal Tìm Kiếm
     document.getElementById('closeSearchModal').addEventListener('click', () => {
         searchModal.classList.remove('active');
     });
 
-    // Bắt sự kiện phím Enter trong ô input
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('btnSearchSubmit').click();
     });
 
-    // Thực hiện Tìm Kiếm
     document.getElementById('btnSearchSubmit').addEventListener('click', () => {
         const city = searchInput.value;
         if (city && city.trim() !== "") {
             searchModal.classList.remove('active');
-            searchInput.value = ''; // Xóa trắng input cho lần sau
-            fetchMockWeather(city.trim());
+            searchInput.value = '';
+            fetchRealWeather(city.trim());
         } else {
             showToast("Vui lòng nhập tên thành phố hợp lệ!", "error");
         }
     });
 
-    // --- HÀM GIẢ LẬP DỮ LIỆU THỜI TIẾT (GIỮ NGUYÊN) ---
-    function fetchMockWeather(city) {
-        document.getElementById('cityName').innerText = "Đang tìm...";
+    // --- 5. DATA BINDING: GỌI API THỜI TIẾT THỰC TẾ ---
+    async function fetchRealWeather(city) {
+        let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+
+        // Chặn tuyệt đối chuỗi rác "undefined"
+        if (!token || token === 'undefined' || token === 'null') {
+            showToast('Vui lòng đăng nhập để xem thời tiết!', 'error');
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('jwtToken');
+            authModal.classList.add('active');
+            return;
+        }
+
+        // Giao diện chờ loading
+        document.getElementById('cityName').innerText = "Đang tải...";
         document.getElementById('temperature').innerText = "--";
         document.getElementById('condition').innerText = "Đang kết nối vệ tinh...";
-        document.getElementById('aiAdviceContent').innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> AI đang phân tích...";
+        document.getElementById('tempHigh').innerText = "--";
+        document.getElementById('tempLow').innerText = "--";
+        document.getElementById('aiAdviceContent').innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> AI đang phân tích dữ liệu...";
         document.getElementById('aiTags').innerHTML = "";
+        document.querySelector('.hourly-forecast').innerHTML = "<div style='text-align:center; width:100%; color:#b5b8d9;'><i class='fa-solid fa-spinner fa-spin'></i> Đang lấy dữ liệu 24h tới...</div>";
 
-        setTimeout(() => {
-            const mockResponse = {
-                cityName: city.charAt(0).toUpperCase() + city.slice(1),
-                temperature: (Math.random() * 15 + 15).toFixed(1),
-                condition: "Nắng Đẹp",
-                aiAdvice: {
-                    advice: `Trời quang mây tạnh tại ${city}, rất thích hợp để ra ngoài đi dạo. Đừng quên mang kính râm!`,
-                    items_to_bring: ["Kính râm", "Mũ lưỡi trai", "Nước suối"],
-                    warnings: ["Chỉ số UV có thể tăng cao vào buổi trưa."]
+        try {
+            const res = await fetch(`/api/v1/weather/current?city=${encodeURIComponent(city)}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            };
+            });
 
-            if (mockResponse.temperature < 20) {
-                mockResponse.condition = "Mưa Lạnh";
-                mockResponse.aiAdvice = {
-                    advice: `Nhiệt độ khá thấp tại ${city}, có mưa phùn. Hãy mặc áo ấm và mang ô.`,
-                    items_to_bring: ["Áo khoác len", "Ô che mưa"],
-                    warnings: ["Đường trơn trượt", "Dễ cảm lạnh"]
-                };
+            if (res.ok) {
+                const data = await res.json();
+                updateRealUI(data);
+            } else if (res.status === 429) { // Quá giới hạn Bucket4j
+                showToast("Bạn tra cứu quá nhanh (10 lần/phút). Vui lòng đợi!", "error");
+                resetUI();
+            } else if (res.status === 401 || res.status === 403) {
+                showToast("Phiên đăng nhập hết hạn hoặc bị khóa!", "error");
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('jwtToken');
+                authModal.classList.add('active');
+                resetUI();
+            } else {
+                showToast("Không tìm thấy dữ liệu cho khu vực này!", "error");
+                resetUI();
             }
-
-            updateUI(mockResponse);
-        }, 1500);
+        } catch (err) {
+            showToast("Mất kết nối đến máy chủ API!", "error");
+            resetUI();
+        }
     }
 
-    // Cập nhật DOM
-    function updateUI(data) {
+    // Reset lại UI khi lỗi
+    function resetUI() {
+        document.getElementById('cityName').innerText = "Vui lòng thử lại";
+        document.getElementById('temperature').innerText = "--";
+        document.getElementById('condition').innerText = "--";
+        document.getElementById('aiAdviceContent').innerText = "Không có dữ liệu AI.";
+        document.querySelector('.hourly-forecast').innerHTML = "";
+    }
+
+    // --- 6. RENDER DỮ LIỆU JSON LÊN DOM ---
+    function updateRealUI(data) {
         document.getElementById('cityName').innerText = data.cityName;
         document.getElementById('temperature').innerText = Math.round(data.temperature);
         document.getElementById('condition').innerText = data.condition;
+        document.getElementById('tempHigh').innerText = Math.round(data.tempHigh);
+        document.getElementById('tempLow').innerText = Math.round(data.tempLow);
 
-        document.getElementById('tempHigh').innerText = Math.round(data.temperature) + 4;
-        document.getElementById('tempLow').innerText = Math.round(data.temperature) - 3;
-        document.getElementById('uvIndex').innerText = data.temperature > 25 ? 8 : 3;
-        document.getElementById('uvDesc').innerText = data.temperature > 25 ? "Rất cao" : "Thấp";
+        document.getElementById('uvIndex').innerText = data.uvIndex;
+        let uvDesc = "Thấp";
+        if (data.uvIndex >= 3 && data.uvIndex <= 5) uvDesc = "Trung bình";
+        else if (data.uvIndex >= 6 && data.uvIndex <= 7) uvDesc = "Cao";
+        else if (data.uvIndex >= 8) uvDesc = "Rất cao";
+        document.getElementById('uvDesc').innerText = uvDesc;
+
+        document.getElementById('humidity').innerText = data.humidity;
+        document.getElementById('windSpeed').innerText = data.windSpeed;
+        document.getElementById('visibility').innerText = data.visibility;
 
         const aiData = data.aiAdvice;
-        document.getElementById('aiAdviceContent').innerText = `"${aiData.advice}"`;
+        if (aiData) {
+            document.getElementById('aiAdviceContent').innerText = `"${aiData.advice}"`;
 
-        let tagsHtml = '';
-        aiData.items_to_bring.forEach(item => {
-            tagsHtml += `<span class="ai-tag"><i class="fa-solid fa-check text-success"></i> ${item}</span>`;
-        });
+            let tagsHtml = '';
+            if (aiData.items_to_bring && aiData.items_to_bring.length > 0) {
+                aiData.items_to_bring.forEach(item => {
+                    tagsHtml += `<span class="ai-tag"><i class="fa-solid fa-check text-success"></i> ${item}</span>`;
+                });
+            }
+            if (aiData.warnings && aiData.warnings.length > 0) {
+                aiData.warnings.forEach(warning => {
+                    tagsHtml += `<span class="ai-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> ${warning}
+                                 </span>`;
+                });
+            }
+            document.getElementById('aiTags').innerHTML = tagsHtml;
+        }
 
-        aiData.warnings.forEach(warning => {
-            tagsHtml += `<span class="ai-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">
-                            <i class="fa-solid fa-triangle-exclamation"></i> ${warning}
-                         </span>`;
-        });
+        const hourlyContainer = document.querySelector('.hourly-forecast');
+        let hourlyHtml = '';
+        if (data.hourlyForecast && data.hourlyForecast.length > 0) {
+            data.hourlyForecast.forEach((hourData, index) => {
+                const isActive = index === 0 ? 'active' : '';
+                const timeLabel = index === 0 ? 'Bây giờ' : hourData.time;
 
-        document.getElementById('aiTags').innerHTML = tagsHtml;
+                hourlyHtml += `
+                    <div class="hour-item ${isActive}">
+                        <div class="time">${timeLabel}</div>
+                        <img src="${hourData.iconUrl}" alt="icon" style="width: 40px; height: 40px; margin-bottom: 5px;">
+                        <div class="temp">${Math.round(hourData.temp)}°</div>
+                    </div>
+                `;
+            });
+        }
+        hourlyContainer.innerHTML = hourlyHtml;
     }
 });

@@ -86,18 +86,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 1. Tìm JWT trong Header (Dành cho Mobile App / Postman)
         String headerAuth = request.getHeader("Authorization");
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7).trim();
+            String token = headerAuth.substring(7).trim();
+            // CHẶN NGAY nếu frontend gửi lên chuỗi "undefined" hoặc "null"
+            if (token.equals("undefined") || token.equals("null")) {
+                return null;
+            }
+            return token;
         }
 
         // 2. Tìm JWT trong Cookie (Dành cho trình duyệt truy cập Web Admin)
         if (request.getCookies() != null) {
             for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
                 if ("jwt_token".equals(cookie.getName())) {
-                    return cookie.getValue().trim();
+                    String token = cookie.getValue().trim();
+                    // CHẶN NGAY nếu cookie đang lưu chữ "undefined"
+                    if (token.equals("undefined") || token.equals("null")) {
+                        return null;
+                    }
+                    return token;
                 }
             }
         }
-
         return null;
     }
 }
