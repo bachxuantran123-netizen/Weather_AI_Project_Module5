@@ -123,5 +123,5 @@ Dự án được xây dựng và phát triển với sự đóng góp của:
 * 👨‍💻 **Minh** - Frontend & Mobile UI Developer *(UI/UX, Data Binding, DOM Manipulation)*
 
 <div align="center">
-  <p><i>Phát triển trong khuôn khổ Đồ án Module 5 - 2024</i></p>
+  <p><i>Phát triển trong khuôn khổ Module 5 - 2026</i></p>
 </div>
