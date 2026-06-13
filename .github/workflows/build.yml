@@ -1,13 +1,11 @@
-name: Java CI/CD with Gradle
+name: Java CI/CD to AWS EC2
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,4 +22,22 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build and Test with Gradle
-        run: ./gradlew build --no-daemon
+        run: ./gradlew clean build -x test --no-daemon
+
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/Weather_AI_Project_Module5
+            
+            git reset --hard
+            git pull origin main
+            
+            chmod +x gradlew
+            ./gradlew clean build -x test
+            
+            sudo docker compose down
+            sudo docker compose up -d --build
