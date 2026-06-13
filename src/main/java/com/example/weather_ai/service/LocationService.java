@@ -11,6 +11,10 @@ import com.example.weather_ai.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +27,7 @@ public class LocationService {
     private final LocationRepository locationRepository;
     private final AccountLocationRepository accountLocationRepository;
 
-    @Transactional // Đảm bảo tính toàn vẹn dữ liệu (Nếu lỗi sẽ rollback toàn bộ)
+    @Transactional
     public String addFavoriteLocation(String username, LocationRequest request) {
         // 1. Lấy thông tin user đang đăng nhập
         Account account = accountRepository.findByUsername(username)
@@ -104,5 +108,9 @@ public class LocationService {
         accountLocationRepository.delete(accountLocation);
 
         return "Đã xóa địa điểm khỏi danh sách yêu thích.";
+    }
+    public Page<AccountLocation> getPaginatedSavedLocations(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return accountLocationRepository.findAll(pageable);
     }
 }

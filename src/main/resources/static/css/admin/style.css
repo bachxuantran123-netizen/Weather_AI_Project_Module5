@@ -238,3 +238,37 @@ body {
     color: #ef4444 !important;
     border: 1px solid rgba(239, 68, 68, 0.2) !important;
 }
+/* --- CUSTOM PAGINATION CHO ADMIN SAAS --- */
+.custom-pagination .page-link {
+    border: none;
+    color: #6c757d;
+    margin: 0 5px;
+    border-radius: 8px; /* Bo góc nhẹ */
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.custom-pagination .page-link:hover {
+    background-color: #f0f4f8;
+    color: #0D8ABC;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.custom-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #0D8ABC, #025B82); /* Gradient xanh của hệ thống */
+    color: white;
+    box-shadow: 0 4px 10px rgba(13, 138, 188, 0.3);
+}
+
+.custom-pagination .page-item.disabled .page-link {
+    background-color: transparent;
+    color: #dee2e6;
+    box-shadow: none;
+    transform: none;
+}
