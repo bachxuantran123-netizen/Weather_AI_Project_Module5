@@ -26,15 +26,25 @@ jobs:
 
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: WEATHER_API_KEY,GEMINI_API_KEY,JWT_SECRET_KEY
           script: |
             cd ~/Weather_AI_Project_Module5
             
             git reset --hard
             git pull origin main
+            
+            echo "WEATHER_API_KEY=$WEATHER_API_KEY" > .env
+            echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> .env
+            echo "JWT_SECRET_KEY=$JWT_SECRET_KEY" >> .env
+            echo "TZ=Asia/Ho_Chi_Minh" >> .env
             
             chmod +x gradlew
             ./gradlew clean build -x test
