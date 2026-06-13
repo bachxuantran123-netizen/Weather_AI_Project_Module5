@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -46,7 +45,7 @@ class WeatherServiceTest {
 
     @Test
     @DisplayName("Lấy thời tiết thành công - Trả về WeatherApiResponse hợp lệ")
-    void givenValidCity_whenGetCurrentWeather_thenReturnWeatherApiResponse() {
+    void givenValidCity_whenGetWeatherForecast_thenReturnWeatherApiResponse() {
         // Given
         String city = "Hanoi";
 
@@ -77,7 +76,7 @@ class WeatherServiceTest {
         given(exchangeFunction.exchange(any())).willReturn(Mono.just(mockClientResponse));
 
         // When
-        Mono<WeatherApiResponse> result = weatherService.getCurrentWeather(city);
+        Mono<WeatherApiResponse> result = weatherService.getWeatherForecast(city);
 
         // Then (Kiểm tra xem JSON có được parse thành công ra DTO không)
         StepVerifier.create(result)
