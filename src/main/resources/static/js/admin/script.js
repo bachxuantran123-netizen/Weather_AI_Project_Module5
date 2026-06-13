@@ -69,39 +69,54 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 2. TÍNH NĂNG CẤP QUYỀN (THÊM TÀI KHOẢN)
+    // 2. TÍNH NĂNG CẤP QUYỀN (THÊM TÀI KHOẢN BẰNG SWEETALERT2)
     const addUserBtn = document.querySelector('.btn-cyber');
     if (addUserBtn) {
         addUserBtn.addEventListener('click', async () => {
-            const username = prompt("Nhập tên đăng nhập cho tài khoản mới:");
-            if (!username || username.trim() === "") return;
-
-            const password = prompt("Nhập mật khẩu (tối thiểu 6 ký tự):");
-            if (!password || password.trim() === "") return;
-
-            const originalHtml = addUserBtn.innerHTML;
-            addUserBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>ĐANG XỬ LÝ...';
-            addUserBtn.disabled = true;
-
-            try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username.trim(), password: password.trim() })
-                });
-
-                const resJson = await response.json();
-                if (response.ok && resJson.success) {
-                    window.showCyberToast("THÀNH CÔNG", "Tạo tài khoản thành công!", "success");
-                    setTimeout(() => window.location.reload(), 1500); // Reload để thấy user mới
-                } else {
-                    window.showCyberToast("LỖI", resJson.message || "Tên đăng nhập đã tồn tại!", "error");
+            const { value: formValues } = await Swal.fire({
+                title: 'CẤP QUYỀN TÀI KHOẢN MỚI',
+                html:
+                    '<input id="swal-input1" class="swal2-input" placeholder="Tên đăng nhập">' +
+                    '<input id="swal-input2" class="swal2-input" type="password" placeholder="Mật khẩu (Tối thiểu 6 ký tự)">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Tạo Tài Khoản',
+                cancelButtonText: 'Hủy',
+                preConfirm: () => {
+                    const user = document.getElementById('swal-input1').value;
+                    const pass = document.getElementById('swal-input2').value;
+                    if (!user || !pass) {
+                        Swal.showValidationMessage('Vui lòng nhập đầy đủ tài khoản và mật khẩu!');
+                    }
+                    return { username: user, password: pass };
                 }
-            } catch (error) {
-                window.showCyberToast("MẤT KẾT NỐI", "Không thể kết nối máy chủ", "error");
-            } finally {
-                addUserBtn.innerHTML = originalHtml;
-                addUserBtn.disabled = false;
+            });
+
+            if (formValues) {
+                const originalHtml = addUserBtn.innerHTML;
+                addUserBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>ĐANG XỬ LÝ...';
+                addUserBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: formValues.username.trim(), password: formValues.password.trim() })
+                    });
+
+                    const resJson = await response.json();
+                    if (response.ok && resJson.success) {
+                        window.showCyberToast("THÀNH CÔNG", "Tạo tài khoản thành công!", "success");
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        window.showCyberToast("LỖI", resJson.message || "Tên đăng nhập đã tồn tại!", "error");
+                    }
+                } catch (error) {
+                    window.showCyberToast("MẤT KẾT NỐI", "Không thể kết nối máy chủ", "error");
+                } finally {
+                    addUserBtn.innerHTML = originalHtml;
+                    addUserBtn.disabled = false;
+                }
             }
         });
     }

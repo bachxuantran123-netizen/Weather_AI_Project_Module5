@@ -36,9 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById('loginFormContainer');
     const registerForm = document.getElementById('registerFormContainer');
 
-    const userProfileBtn = document.getElementById('userProfileBtn');
-    if(userProfileBtn) userProfileBtn.addEventListener('click', () => authModal.classList.add('active'));
-
     const closeAuthModalBtn = document.getElementById('closeAuthModal');
     if(closeAuthModalBtn) closeAuthModalBtn.addEventListener('click', () => authModal.classList.remove('active'));
 
@@ -66,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) { showToast('Lỗi kết nối máy chủ!', 'error'); }
     });
 
-    // Đăng nhập (Đã fix triệt để lỗi Undefined Token)
+    // Đăng nhập
     document.getElementById('btnLoginSubmit').addEventListener('click', async () => {
         const u = document.getElementById('loginUsername').value;
         const p = document.getElementById('loginPassword').value;
@@ -82,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (res.ok && json.success) {
                 showToast('Đăng nhập thành công!', 'success');
 
-                // Gọi chính xác json.data.accessToken theo chuẩn của JwtResponse
                 const validToken = json.data?.accessToken;
 
                 if (validToken && validToken !== 'undefined') {
@@ -100,10 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 3. THÊM ĐỊA ĐIỂM YÊU THÍCH ---
     document.getElementById('addLocationBtn').addEventListener('click', async () => {
-        // Hỗ trợ đọc cả 2 loại key phòng hờ
         let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
 
-        // Chặn tuyệt đối chuỗi rác "undefined"
+        // Chặn chuỗi rác "undefined"
         if (!token || token === 'undefined' || token === 'null') {
             showToast('Bạn cần đăng nhập để lưu địa điểm!', 'error');
             localStorage.removeItem('jwt_token');
@@ -173,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fetchRealWeather(city) {
         let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
 
-        // Chặn tuyệt đối chuỗi rác "undefined"
+        // Chặn chuỗi rác "undefined"
         if (!token || token === 'undefined' || token === 'null') {
             showToast('Vui lòng đăng nhập để xem thời tiết!', 'error');
             localStorage.removeItem('jwt_token');
@@ -288,4 +283,123 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         hourlyContainer.innerHTML = hourlyHtml;
     }
+    // --- 7. AUTO FETCH LOCATION ON LOAD ---
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                fetchRealWeather(`${lat},${lon}`);
+            },
+            (error) => {
+                console.warn("User denied geolocation. Fallback to Hanoi.");
+                fetchRealWeather("Hanoi"); // Fallback
+            },
+            { enableHighAccuracy: true, timeout: 5000 }
+        );
+    } else {
+        fetchRealWeather("Hanoi");
+    }
+    // --- 8. XỬ LÝ USER PROFILE (AVATAR & ĐỔI MẬT KHẨU) ---
+    const profileModal = document.getElementById('profileModal');
+    const userProfileBtn = document.getElementById('userProfileBtn');
+
+    if (userProfileBtn) {
+        userProfileBtn.addEventListener('click', async () => {
+            let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+            // Kiểm tra trạng thái đăng nhập
+            if (!token || token === 'undefined' || token === 'null') {
+                authModal.classList.add('active'); // Chưa đăng nhập -> Hiện bảng Login
+            } else {
+                profileModal.classList.add('active'); // Đã đăng nhập -> Hiện Profile
+                loadUserProfile(token);
+            }
+        });
+    }
+
+    document.getElementById('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('active'));
+
+    // Gọi API lấy thông tin Profile cơ bản (Hiển thị username & avatar mặc định)
+    async function loadUserProfile(token) {
+        try {
+            let res = await fetch('/api/v1/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                let json = await res.json();
+                let user = json.data;
+                document.getElementById('profileUsername').innerText = `@${user.username}`;
+                // Tạm thời dùng ui-avatars theo username nếu backend chưa có URL avatar cứng
+                document.getElementById('profileAvatar').src = `https://ui-avatars.com/api/?name=${user.username}&background=8b5cf6&color=fff&size=200`;
+            } else {
+                localStorage.removeItem('jwt_token');
+                profileModal.classList.remove('active');
+                authModal.classList.add('active');
+            }
+        } catch (err) { showToast('Lỗi tải dữ liệu!', 'error'); }
+    }
+
+    // Đổi mật khẩu
+    document.getElementById('btnChangePassword').addEventListener('click', async () => {
+        const oldPass = document.getElementById('oldPassword').value;
+        const newPass = document.getElementById('newPassword').value;
+        if(!oldPass || !newPass) return showToast('Vui lòng nhập đủ thông tin!', 'error');
+
+        let token = localStorage.getItem('jwt_token');
+        try {
+            let res = await fetch('/api/v1/users/change-password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+            });
+            let json = await res.json();
+            if (res.ok && json.success) {
+                showToast('Đổi mật khẩu thành công!', 'success');
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+            } else {
+                showToast(json.message || 'Lỗi đổi mật khẩu!', 'error');
+            }
+        } catch(e) { showToast('Lỗi kết nối mạng!', 'error'); }
+    });
+
+    // Cập nhật Avatar (Preview ảnh và Push MultipartFile lên server)
+    document.getElementById('avatarUpload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Preview ảnh mượt mà cho UI
+        const reader = new FileReader();
+        reader.onload = (event) => document.getElementById('profileAvatar').src = event.target.result;
+        reader.readAsDataURL(file);
+
+        // Upload ngầm lên Backend
+        let token = localStorage.getItem('jwt_token');
+        const formData = new FormData();
+        formData.append('avatar', file); // 'avatar' là key backend cần nhận
+
+        try {
+            showToast('Đang tải ảnh lên...', 'success');
+            let res = await fetch('/api/v1/users/avatar', {
+                method: 'POST',
+                // Lưu ý: Tuyệt đối KHÔNG set Content-Type header khi dùng FormData. Browser sẽ tự tính toán boundary.
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            let json = await res.json();
+            if (res.ok && json.success) {
+                showToast('Lưu ảnh đại diện thành công!', 'success');
+            } else {
+                showToast(json.message || 'Lỗi khi upload ảnh!', 'error');
+            }
+        } catch(error) { showToast('Lỗi mạng khi upload!', 'error'); }
+    });
+
+    // Đăng xuất từ giao diện Mobile
+    document.getElementById('btnLogoutMobile').addEventListener('click', () => {
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('jwtToken');
+        profileModal.classList.remove('active');
+        showToast('Đã đăng xuất khỏi thiết bị!', 'success');
+        // Quét lại trang sau 1s để reset dữ liệu DOM
+        setTimeout(() => window.location.reload(), 1000);
+    });
 });
