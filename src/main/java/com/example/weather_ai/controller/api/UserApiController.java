@@ -5,9 +5,9 @@ import com.example.weather_ai.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -25,5 +25,20 @@ public class UserApiController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
+    }
+
+    // DTO hứng Request Body
+    public record ChangePasswordRequest(String oldPassword, String newPassword) {}
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Principal principal) {
+        // ... Logic kiểm tra Password encoder.matches(...)
+        return ResponseEntity.ok(ApiResponse.success("Đã đổi mật khẩu", null));
+    }
+
+    @PostMapping("/avatar")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("avatar") org.springframework.web.multipart.MultipartFile file, Principal principal) {
+        // ... Logic lưu file vào thư mục tĩnh, S3, hoặc Cloudinary, sau đó update Account record
+        return ResponseEntity.ok(ApiResponse.success("Avatar upload successful", null));
     }
 }
