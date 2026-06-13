@@ -3,12 +3,15 @@ package com.example.weather_ai.controller;
 import com.example.weather_ai.entity.AccountLocation;
 import com.example.weather_ai.repository.AccountLocationRepository;
 import com.example.weather_ai.repository.AccountRepository;
-import com.example.weather_ai.repository.SearchHistoryRepository; // Thêm
+import com.example.weather_ai.repository.SearchHistoryRepository;
+import com.example.weather_ai.service.LocationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -23,11 +26,17 @@ public class AdminWebController {
     private final AccountRepository accountRepository;
     private final AccountLocationRepository accountLocationRepository;
     private final SearchHistoryRepository searchHistoryRepository;
+    private final LocationService locationService;
 
     @GetMapping("/dashboard")
-    public String showDashboard(Model model) {
+    public String showDashboard(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
         long activeUsers = accountRepository.count();
-        List<AccountLocation> recentLocations = accountLocationRepository.findAll();
+
+        Page<AccountLocation> locationPage = locationService.getPaginatedSavedLocations(page, size);
 
         // 1. Lấy TỔNG SỐ THẬT từ bảng Lịch sử
         long totalRequests = searchHistoryRepository.count();
@@ -58,25 +67,23 @@ public class AdminWebController {
         model.addAttribute("pageTitle", "Weather_AI | Admin Dashboard");
         model.addAttribute("welcomeMessage", "Chào mừng Admin!");
         model.addAttribute("activeUsers", activeUsers);
-        model.addAttribute("recentLocations", recentLocations);
+
+        model.addAttribute("locationPage", locationPage);
 
         model.addAttribute("totalRequests", totalRequests);
-        model.addAttribute("aiAdvicesGenerated", totalRequests); // Tạm coi mỗi request = 1 lời khuyên AI
+        model.addAttribute("aiAdvicesGenerated", totalRequests);
 
-        // Đẩy 2 mảng này ra Thymeleaf để vẽ đồ thị
         model.addAttribute("chartLabels", chartLabels);
         model.addAttribute("chartData", chartData);
 
         return "admin/dashboard";
     }
+
     @GetMapping("/users")
     public String showUsersManager(Model model) {
-        // Lấy toàn bộ danh sách User từ Database
         List<com.example.weather_ai.entity.Account> users = accountRepository.findAll();
-
         model.addAttribute("users", users);
         model.addAttribute("pageTitle", "Weather_AI | Quản lý User");
-
-        return "admin/users"; // Trỏ tới file HTML sẽ tạo ở Bước 2
+        return "admin/users";
     }
 }
