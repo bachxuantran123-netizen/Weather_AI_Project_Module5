@@ -13,7 +13,6 @@ import java.util.List;
 public class AiAdviceDto {
     private String advice;
 
-    // Đảm bảo map đúng key "items_to_bring" từ JSON
     @JsonProperty("items_to_bring")
     private List<String> itemsToBring;
 

@@ -14,7 +14,6 @@ public class ApiResponse<T> {
     private String message;
     private T data;
 
-    // Helper methods for easy instantiation
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(true, message, data);
     }

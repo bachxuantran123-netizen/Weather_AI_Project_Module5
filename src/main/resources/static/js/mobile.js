@@ -1,3 +1,15 @@
+// --- YÊU CẦU QUYỀN THÔNG BÁO TỪ NGƯỜI DÙNG ---
+document.addEventListener("DOMContentLoaded", () => {
+    if ("Notification" in window) {
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    console.log("Đã cấp quyền gửi thông báo đẩy!");
+                }
+            });
+        }
+    }
+});
 document.addEventListener("DOMContentLoaded", () => {
 
     // --- CÔNG CỤ HIỂN THỊ TOAST ---
@@ -166,6 +178,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 5. DATA BINDING: GỌI API THỜI TIẾT THỰC TẾ ---
     async function fetchRealWeather(city) {
+        // ---- MOCK DATA ----
+        if (city.trim().toLowerCase() === 'demacia') {
+            const mockData = {
+                cityName: "Gotham City",
+                temperature: 36,
+                condition: "Bão Siêu Cấp",
+                tempHigh: 30,
+                tempLow: 25,
+                uvIndex: 1,
+                humidity: 99,
+                windSpeed: 200,
+                visibility: 0,
+                aiAdvice: {
+                    advice: "TÌM NƠI TRÚ ẨN NGAY LẬP TỨC!",
+                    items_to_bring: ["Đèn pin", "Lương khô", "Áo phao"],
+                    warnings: [
+                        "BÃO CẤP 15 ĐANG TIẾN VÀO THÀNH PHỐ!",
+                        "NGUY CƠ SẠT LỞ ĐẤT VÀ LŨ QUÉT ĐẶC BIỆT NGHIÊM TRỌNG!"
+                    ]
+                },
+                hourlyForecast: []
+            };
+            const searchModal = document.getElementById('searchModal');
+            if (searchModal) searchModal.classList.remove('active');
+
+            updateRealUI(mockData);
+            return;
+        }
         let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
 
         // Chặn chuỗi rác "undefined"
@@ -247,6 +287,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const aiData = data.aiAdvice;
         if (aiData) {
+            if (aiData.warnings && aiData.warnings.length > 0) {
+                if (typeof triggerDisasterAlert === "function") {
+                    triggerDisasterAlert(aiData.warnings);
+                }
+            }
+
             document.getElementById('aiAdviceContent').innerText = `"${aiData.advice}"`;
 
             let tagsHtml = '';
@@ -327,7 +373,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 let json = await res.json();
                 let user = json.data;
                 document.getElementById('profileUsername').innerText = `@${user.username}`;
-                // Tạm thời dùng ui-avatars theo username nếu backend chưa có URL avatar cứng
                 document.getElementById('profileAvatar').src = `https://ui-avatars.com/api/?name=${user.username}&background=8b5cf6&color=fff&size=200`;
             } else {
                 localStorage.removeItem('jwt_token');
@@ -361,26 +406,23 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch(e) { showToast('Lỗi kết nối mạng!', 'error'); }
     });
 
-    // Cập nhật Avatar (Preview ảnh và Push MultipartFile lên server)
+    // Cập nhật Avatar
     document.getElementById('avatarUpload').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Preview ảnh mượt mà cho UI
         const reader = new FileReader();
         reader.onload = (event) => document.getElementById('profileAvatar').src = event.target.result;
         reader.readAsDataURL(file);
 
-        // Upload ngầm lên Backend
         let token = localStorage.getItem('jwt_token');
         const formData = new FormData();
-        formData.append('avatar', file); // 'avatar' là key backend cần nhận
+        formData.append('avatar', file);
 
         try {
             showToast('Đang tải ảnh lên...', 'success');
             let res = await fetch('/api/v1/users/avatar', {
                 method: 'POST',
-                // Lưu ý: Tuyệt đối KHÔNG set Content-Type header khi dùng FormData. Browser sẽ tự tính toán boundary.
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
             });
@@ -399,7 +441,47 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem('jwtToken');
         profileModal.classList.remove('active');
         showToast('Đã đăng xuất khỏi thiết bị!', 'success');
-        // Quét lại trang sau 1s để reset dữ liệu DOM
         setTimeout(() => window.location.reload(), 1000);
     });
+    // --- HÀM KÍCH HOẠT CẢNH BÁO THIÊN TAI KHẨN CẤP ---
+    function triggerDisasterAlert(warnings) {
+        if (!warnings || warnings.length === 0) return;
+
+        // 1. RUNG MÁY (Vibration API)
+        if ("vibrate" in navigator) {
+            navigator.vibrate([1000, 500, 1000, 500, 2000]);
+        }
+
+        // 2. PHÁT ÂM THANH CÒI BÁO ĐỘNG
+        try {
+            let siren = new Audio('https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg');
+            siren.volume = 1.0;
+            siren.play().catch(e => console.warn("Trình duyệt chặn AutoPlay âm thanh cho đến khi User tương tác."));
+        } catch (e) {}
+
+        // 3. THÔNG BÁO ĐẨY CỦA HỆ ĐIỀU HÀNH
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("🚨 CẢNH BÁO THIÊN TAI KHẨN CẤP!", {
+                body: warnings[0],
+                icon: 'https://cdn-icons-png.flaticon.com/512/1157/1157000.png',
+                badge: 'https://cdn-icons-png.flaticon.com/512/1157/1157000.png',
+                vibrate: [200, 100, 200]
+            });
+        }
+
+        // 4. HIỂN THỊ POPUP
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '🚨 NGUY HIỂM!',
+                html: warnings.map(w => `<b style="font-size: 1.1rem;">${w}</b>`).join('<br><br>'),
+                icon: 'error',
+                background: '#2b0202',
+                color: '#ff4d4d',
+                confirmButtonText: 'TÔI ĐÃ RÕ VÀ SẼ TÌM NƠI TRÚ ẨN',
+                confirmButtonColor: '#d33',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+        }
+    }
 });
