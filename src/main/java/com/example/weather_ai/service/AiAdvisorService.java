@@ -29,9 +29,23 @@ public class AiAdvisorService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public Mono<AiAdviceDto> getAdviceFromWeather(WeatherApiResponse.CurrentDto currentData) {
+    public Mono<AiAdviceDto> getAdviceFromWeather(WeatherApiResponse weatherData) {
+        WeatherApiResponse.CurrentDto currentData = weatherData.getCurrent();
+
+        // Xử lý chuỗi cảnh báo thiên tai (Nếu có)
+        StringBuilder alertsText = new StringBuilder();
+        if (weatherData.getAlerts() != null && weatherData.getAlerts().getAlert() != null && !weatherData.getAlerts().getAlert().isEmpty()) {
+            alertsText.append("\n⚠️ ĐANG CÓ CẢNH BÁO THỜI TIẾT KHẨN CẤP TẠI KHU VỰC NÀY:\n");
+            for (WeatherApiResponse.AlertItemDto alert : weatherData.getAlerts().getAlert()) {
+                alertsText.append("- ").append(alert.getHeadline())
+                        .append(" (Mức độ: ").append(alert.getSeverity()).append(")\n");
+            }
+        }
+
         String prompt = String.format("""
-                Thời tiết đang là %s, nhiệt độ %s độ C, chỉ số UV %s. Hãy đóng vai chuyên gia thời tiết đưa ra lời khuyên.
+                Thời tiết đang là %s, nhiệt độ %s độ C, chỉ số UV %s. %s
+                Hãy đóng vai chuyên gia thời tiết đưa ra lời khuyên. 
+                🚨 NẾU CÓ CẢNH BÁO THỜI TIẾT KHẨN CẤP BÊN TRÊN: Hãy BỎ QUA các lời khuyên thông thường, ƯU TIÊN đưa ra lời khuyên sinh tồn, an toàn tính mạng trong phần 'warnings' và 'advice'.
                 BẮT BUỘC trả về dữ liệu dưới định dạng JSON, KHÔNG bọc trong markdown block.
                 Cấu trúc JSON yêu cầu:
                 {
@@ -42,7 +56,8 @@ public class AiAdvisorService {
                 """,
                 currentData.getCondition().getText(),
                 currentData.getTempC(),
-                currentData.getUv()
+                currentData.getUv(),
+                alertsText.toString()
         );
 
         Map<String, Object> requestBody = Map.of(
@@ -65,19 +80,10 @@ public class AiAdvisorService {
                         return new AiAdviceDto("LỖI JSON: Không thể phân tích phản hồi từ AI.", List.of(), List.of());
                     }
                 })
-                .onErrorResume(e -> {
-                    // Nếu lỗi do Google trả về (WebClientResponseException), moi chi tiết lỗi ra
-                    if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException webEx) {
-                        System.err.println("🚨 [GOOGLE GEMINI DETAIL ERROR]: " + webEx.getResponseBodyAsString());
-                    } else {
-                        System.err.println("🚨 [DEBUG] LỖI TỪ GEMINI API: " + e.getMessage());
-                    }
-
-                    return Mono.just(new AiAdviceDto(
-                            "Hiện tại hệ thống AI đang bảo trì hoặc mất kết nối. Dưới đây là thông số thời tiết thực tế để bạn tham khảo.",
-                            List.of("Trang phục phù hợp với nhiệt độ", "Vật dụng cá nhân"),
-                            List.of("Chú ý an toàn khi di chuyển")
-                    ));
-                });
+                .onErrorResume(e -> Mono.just(new AiAdviceDto(
+                        "Hệ thống AI đang bận. Vui lòng chú ý an toàn nếu thời tiết xấu.",
+                        List.of("Trang phục phù hợp với nhiệt độ"),
+                        List.of("Chú ý an toàn khi di chuyển")
+                )));
     }
 }

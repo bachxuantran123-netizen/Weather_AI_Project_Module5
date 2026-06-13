@@ -21,10 +21,8 @@ public class WeatherService {
         this.baseUrl = baseUrl.trim();
     }
 
-    // ĐỔI TÊN HÀM VÀ ĐƯỜNG DẪN URL
     public Mono<WeatherApiResponse> getWeatherForecast(String city) {
-        // Đổi từ /current.json sang /forecast.json và thêm &days=3
-        String finalUrl = this.baseUrl + "/forecast.json?key=" + this.apiKey + "&q=" + city + "&days=3&aqi=no&alerts=no";
+        String finalUrl = this.baseUrl + "/forecast.json?key=" + this.apiKey + "&q=" + city + "&days=3&aqi=no&alerts=yes";
 
         return this.webClient.get()
                 .uri(finalUrl)
