@@ -83,7 +83,7 @@ public class AiAdvisorService {
                 .onErrorResume(e -> Mono.just(new AiAdviceDto(
                         "Hệ thống AI đang bận. Vui lòng chú ý an toàn nếu thời tiết xấu.",
                         List.of("Trang phục phù hợp với nhiệt độ"),
-                        List.of("Chú ý an toàn khi di chuyển")
+                        List.of()
                 )));
     }
 }
