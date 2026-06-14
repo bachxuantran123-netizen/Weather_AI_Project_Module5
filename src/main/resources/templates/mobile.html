@@ -109,6 +109,17 @@
                 <input type="password" id="loginPassword" class="form-control" placeholder="Nhập mật khẩu...">
             </div>
             <button class="btn-auth" id="btnLoginSubmit">Đăng Nhập</button>
+            <div style="width: 100%; margin-top: 20px; display: flex; flex-direction: column; align-items: center;">
+                <div style="position: relative; width: 100%; text-align: center; margin-bottom: 15px;">
+                    <span style="background: #1e213a; padding: 0 10px; color: #b5b8d9; font-size: 0.85rem; position: relative; z-index: 1;">HOẶC</span>
+                    <hr style="position: absolute; top: 50%; left: 0; right: 0; margin: 0; border: none; border-top: 1px solid #4a4e69; z-index: 0; transform: translateY(-50%);">
+                </div>
+
+                <a href="/oauth2/authorization/google" style="display: flex; justify-content: center; align-items: center; width: 100%; background: #ffffff; color: #333; text-decoration: none; padding: 12px 0; border-radius: 25px; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style="width: 22px; height: 22px; margin-right: 10px;">
+                    Đăng nhập bằng Google
+                </a>
+            </div>
             <div class="auth-switch">Chưa có tài khoản? <span id="switchToRegister">Đăng ký ngay</span></div>
         </div>
 

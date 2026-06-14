@@ -10,4 +10,9 @@ public class MobileWebController {
     public String showMobilePrototype() {
         return "mobile";
     }
+
+    @GetMapping("/oauth2-redirect")
+    public String showOAuth2RedirectPage() {
+        return "oauth2-redirect";
+    }
 }
