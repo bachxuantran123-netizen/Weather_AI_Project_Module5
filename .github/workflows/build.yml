@@ -24,7 +24,7 @@ jobs:
       - name: Build and Test with Gradle
         run: ./gradlew clean build -x test --no-daemon
 
-      - name: Deploy to AWS EC2
+      - name: Pull Latest Code on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -32,12 +32,25 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/Weather_AI_Project_Module5
-            
             git reset --hard
             git pull origin main
-            
-            chmod +x gradlew
-            ./gradlew clean build -x test
-            
+
+      - name: Copy JAR to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "build/libs/*.jar"
+          target: "~/Weather_AI_Project_Module5/"
+
+      - name: Restart Docker on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/Weather_AI_Project_Module5
             sudo docker compose down
             sudo docker compose up -d --build
