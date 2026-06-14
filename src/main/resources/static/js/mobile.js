@@ -1,4 +1,3 @@
-// --- YÊU CẦU QUYỀN THÔNG BÁO TỪ NGƯỜI DÙNG ---
 document.addEventListener("DOMContentLoaded", () => {
     if ("Notification" in window) {
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -9,10 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
-});
-document.addEventListener("DOMContentLoaded", () => {
 
-    // --- CÔNG CỤ HIỂN THỊ TOAST ---
     function showToast(message, type = 'success') {
         let container = document.getElementById('mobile-toast-container');
         if (!container) {
@@ -34,6 +30,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 3000);
     }
 
+    const userProfileBtn = document.getElementById('userProfileBtn');
+    function initApp() {
+        let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+        if (token && token !== 'undefined' && token !== 'null') {
+            if (userProfileBtn) {
+                userProfileBtn.style.color = '#ffffff';
+            }
+        }
+    }
+    initApp();
+
     // --- 1. XỬ LÝ BOTTOM NAV ---
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
@@ -47,8 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const authModal = document.getElementById('authModal');
     const loginForm = document.getElementById('loginFormContainer');
     const registerForm = document.getElementById('registerFormContainer');
-
     const closeAuthModalBtn = document.getElementById('closeAuthModal');
+
     if(closeAuthModalBtn) closeAuthModalBtn.addEventListener('click', () => authModal.classList.remove('active'));
 
     document.getElementById('switchToRegister').addEventListener('click', () => { loginForm.style.display = 'none'; registerForm.style.display = 'block'; });
@@ -90,13 +97,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (res.ok && json.success) {
                 showToast('Đăng nhập thành công!', 'success');
-
                 const validToken = json.data?.accessToken;
 
                 if (validToken && validToken !== 'undefined') {
-                    // Đồng bộ lưu dưới key jwt_token để dùng chung phiên với web Admin
                     localStorage.setItem('jwt_token', validToken);
                     authModal.classList.remove('active');
+                    initApp(); // Cập nhật lại màu Icon User
                 } else {
                     showToast('Lỗi: Server không trả về Token hợp lệ!', 'error');
                 }
@@ -109,12 +115,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- 3. THÊM ĐỊA ĐIỂM YÊU THÍCH ---
     document.getElementById('addLocationBtn').addEventListener('click', async () => {
         let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
-
-        // Chặn chuỗi rác "undefined"
         if (!token || token === 'undefined' || token === 'null') {
             showToast('Bạn cần đăng nhập để lưu địa điểm!', 'error');
-            localStorage.removeItem('jwt_token');
-            localStorage.removeItem('jwtToken');
             authModal.classList.add('active');
             return;
         }
@@ -131,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
                 body: JSON.stringify({ cityName: cityName, latitude: 0.0, longitude: 0.0, alias: 'Yêu thích' })
             });
-
             let text = await res.text();
             let jsonResponse;
             try { jsonResponse = JSON.parse(text); } catch(e) { jsonResponse = text; }
@@ -143,9 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 let err = typeof jsonResponse === 'object' ? (jsonResponse.message || "Truy cập bị từ chối!") : (jsonResponse || "Lỗi khi lưu!");
                 showToast(err, 'error');
             }
-        } catch (err) {
-            showToast('Mất kết nối đến máy chủ!', 'error');
-        }
+        } catch (err) { showToast('Mất kết nối đến máy chủ!', 'error'); }
     });
 
     // --- 4. TÌM KIẾM MODAL ---
@@ -157,9 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => searchInput.focus(), 100);
     });
 
-    document.getElementById('closeSearchModal').addEventListener('click', () => {
-        searchModal.classList.remove('active');
-    });
+    document.getElementById('closeSearchModal').addEventListener('click', () => searchModal.classList.remove('active'));
 
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('btnSearchSubmit').click();
@@ -178,41 +175,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 5. DATA BINDING: GỌI API THỜI TIẾT THỰC TẾ ---
     async function fetchRealWeather(city) {
-        // ---- MOCK DATA ----
-        if (city.trim().toLowerCase() === 'demacia') {
+        if (city.trim().toLowerCase() === 'demacia' || city.trim().toLowerCase() === 'testbao') {
             const mockData = {
-                cityName: "Gotham City",
-                temperature: 36,
-                condition: "Bão Siêu Cấp",
-                tempHigh: 30,
-                tempLow: 25,
-                uvIndex: 1,
-                humidity: 99,
-                windSpeed: 200,
-                visibility: 0,
+                cityName: "Gotham City", temperature: 36, condition: "Bão Siêu Cấp", tempHigh: 30, tempLow: 25, uvIndex: 1, humidity: 99, windSpeed: 200, visibility: 0,
                 aiAdvice: {
                     advice: "TÌM NƠI TRÚ ẨN NGAY LẬP TỨC!",
                     items_to_bring: ["Đèn pin", "Lương khô", "Áo phao"],
-                    warnings: [
-                        "BÃO CẤP 15 ĐANG TIẾN VÀO THÀNH PHỐ!",
-                        "NGUY CƠ SẠT LỞ ĐẤT VÀ LŨ QUÉT ĐẶC BIỆT NGHIÊM TRỌNG!"
-                    ]
+                    warnings: ["BÃO CẤP 15 ĐANG TIẾN VÀO THÀNH PHỐ!", "NGUY CƠ SẠT LỞ ĐẤT VÀ LŨ QUÉT ĐẶC BIỆT NGHIÊM TRỌNG!"]
                 },
                 hourlyForecast: []
             };
-            const searchModal = document.getElementById('searchModal');
             if (searchModal) searchModal.classList.remove('active');
-
             updateRealUI(mockData);
             return;
         }
-        let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
 
-        // Chặn chuỗi rác "undefined"
+        let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
         if (!token || token === 'undefined' || token === 'null') {
             showToast('Vui lòng đăng nhập để xem thời tiết!', 'error');
-            localStorage.removeItem('jwt_token');
-            localStorage.removeItem('jwtToken');
             authModal.classList.add('active');
             return;
         }
@@ -220,35 +200,32 @@ document.addEventListener("DOMContentLoaded", () => {
         // Giao diện chờ loading
         document.getElementById('cityName').innerText = "Đang tải...";
         document.getElementById('temperature').innerText = "--";
-        document.getElementById('condition').innerText = "Đang kết nối vệ tinh...";
+        document.getElementById('condition').innerText = "Đang kết nối...";
         document.getElementById('tempHigh').innerText = "--";
         document.getElementById('tempLow').innerText = "--";
         document.getElementById('aiAdviceContent').innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> AI đang phân tích dữ liệu...";
         document.getElementById('aiTags').innerHTML = "";
-        document.querySelector('.hourly-forecast').innerHTML = "<div style='text-align:center; width:100%; color:#b5b8d9;'><i class='fa-solid fa-spinner fa-spin'></i> Đang lấy dữ liệu 24h tới...</div>";
+        document.querySelector('.hourly-forecast').innerHTML = "<div style='text-align:center; width:100%; color:#b5b8d9;'><i class='fa-solid fa-spinner fa-spin'></i> Đang lấy dữ liệu...</div>";
 
         try {
             const res = await fetch(`/api/v1/weather/current?city=${encodeURIComponent(city)}`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (res.ok) {
                 const data = await res.json();
                 updateRealUI(data);
-            } else if (res.status === 429) { // Quá giới hạn Bucket4j
-                showToast("Bạn tra cứu quá nhanh (10 lần/phút). Vui lòng đợi!", "error");
+            } else if (res.status === 429) {
+                showToast("Bạn tra cứu quá nhanh. Vui lòng đợi!", "error");
                 resetUI();
             } else if (res.status === 401 || res.status === 403) {
-                showToast("Phiên đăng nhập hết hạn hoặc bị khóa!", "error");
+                showToast("Phiên đăng nhập hết hạn!", "error");
                 localStorage.removeItem('jwt_token');
-                localStorage.removeItem('jwtToken');
                 authModal.classList.add('active');
                 resetUI();
             } else {
-                showToast("Không tìm thấy dữ liệu cho khu vực này!", "error");
+                showToast("Không tìm thấy dữ liệu khu vực này!", "error");
                 resetUI();
             }
         } catch (err) {
@@ -257,9 +234,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Reset lại UI khi lỗi
     function resetUI() {
-        document.getElementById('cityName').innerText = "Vui lòng thử lại";
+        document.getElementById('cityName').innerText = "Lỗi kết nối";
         document.getElementById('temperature').innerText = "--";
         document.getElementById('condition').innerText = "--";
         document.getElementById('aiAdviceContent').innerText = "Không có dữ liệu AI.";
@@ -273,14 +249,14 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('condition').innerText = data.condition;
         document.getElementById('tempHigh').innerText = Math.round(data.tempHigh);
         document.getElementById('tempLow').innerText = Math.round(data.tempLow);
-
         document.getElementById('uvIndex').innerText = data.uvIndex;
+
         let uvDesc = "Thấp";
         if (data.uvIndex >= 3 && data.uvIndex <= 5) uvDesc = "Trung bình";
         else if (data.uvIndex >= 6 && data.uvIndex <= 7) uvDesc = "Cao";
         else if (data.uvIndex >= 8) uvDesc = "Rất cao";
-        document.getElementById('uvDesc').innerText = uvDesc;
 
+        document.getElementById('uvDesc').innerText = uvDesc;
         document.getElementById('humidity').innerText = data.humidity;
         document.getElementById('windSpeed').innerText = data.windSpeed;
         document.getElementById('visibility').innerText = data.visibility;
@@ -288,13 +264,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const aiData = data.aiAdvice;
         if (aiData) {
             if (aiData.warnings && aiData.warnings.length > 0) {
-                if (typeof triggerDisasterAlert === "function") {
-                    triggerDisasterAlert(aiData.warnings);
-                }
+                triggerDisasterAlert(aiData.warnings);
             }
-
             document.getElementById('aiAdviceContent').innerText = `"${aiData.advice}"`;
-
             let tagsHtml = '';
             if (aiData.items_to_bring && aiData.items_to_bring.length > 0) {
                 aiData.items_to_bring.forEach(item => {
@@ -303,9 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if (aiData.warnings && aiData.warnings.length > 0) {
                 aiData.warnings.forEach(warning => {
-                    tagsHtml += `<span class="ai-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> ${warning}
-                                 </span>`;
+                    tagsHtml += `<span class="ai-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;"><i class="fa-solid fa-triangle-exclamation"></i> ${warning}</span>`;
                 });
             }
             document.getElementById('aiTags').innerHTML = tagsHtml;
@@ -317,69 +287,65 @@ document.addEventListener("DOMContentLoaded", () => {
             data.hourlyForecast.forEach((hourData, index) => {
                 const isActive = index === 0 ? 'active' : '';
                 const timeLabel = index === 0 ? 'Bây giờ' : hourData.time;
-
                 hourlyHtml += `
                     <div class="hour-item ${isActive}">
                         <div class="time">${timeLabel}</div>
                         <img src="${hourData.iconUrl}" alt="icon" style="width: 40px; height: 40px; margin-bottom: 5px;">
                         <div class="temp">${Math.round(hourData.temp)}°</div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
         hourlyContainer.innerHTML = hourlyHtml;
     }
+
     // --- 7. AUTO FETCH LOCATION ON LOAD ---
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                fetchRealWeather(`${lat},${lon}`);
-            },
-            (error) => {
-                console.warn("User denied geolocation. Fallback to Hanoi.");
-                fetchRealWeather("Hanoi"); // Fallback
-            },
+            (position) => { fetchRealWeather(`${position.coords.latitude},${position.coords.longitude}`); },
+            (error) => { fetchRealWeather("Hanoi"); },
             { enableHighAccuracy: true, timeout: 5000 }
         );
     } else {
         fetchRealWeather("Hanoi");
     }
+
     // --- 8. XỬ LÝ USER PROFILE (AVATAR & ĐỔI MẬT KHẨU) ---
     const profileModal = document.getElementById('profileModal');
-    const userProfileBtn = document.getElementById('userProfileBtn');
-
     if (userProfileBtn) {
-        userProfileBtn.addEventListener('click', async () => {
+        userProfileBtn.addEventListener('click', () => {
             let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
-            // Kiểm tra trạng thái đăng nhập
             if (!token || token === 'undefined' || token === 'null') {
-                authModal.classList.add('active'); // Chưa đăng nhập -> Hiện bảng Login
+                authModal.classList.add('active');
             } else {
-                profileModal.classList.add('active'); // Đã đăng nhập -> Hiện Profile
+                profileModal.classList.add('active');
                 loadUserProfile(token);
             }
         });
     }
 
-    document.getElementById('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('active'));
+    const closeProfileBtn = document.getElementById('closeProfileModal');
+    if(closeProfileBtn) closeProfileBtn.addEventListener('click', () => profileModal.classList.remove('active'));
 
-    // Gọi API lấy thông tin Profile cơ bản (Hiển thị username & avatar mặc định)
+    // Gọi API lấy thông tin Profile
     async function loadUserProfile(token) {
         try {
             let res = await fetch('/api/v1/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) {
                 let json = await res.json();
-                let user = json.data;
-                document.getElementById('profileUsername').innerText = `@${user.username}`;
-                document.getElementById('profileAvatar').src = `https://ui-avatars.com/api/?name=${user.username}&background=8b5cf6&color=fff&size=200`;
+                let user = json.data || json;
+
+                // Nếu dùng Google đăng nhập, tên có thể là email. Cắt phần @gmail.com đi cho gọn.
+                let displayName = user.username;
+                if(displayName.includes('@')) displayName = displayName.split('@')[0];
+
+                document.getElementById('profileUsername').innerText = `@${displayName}`;
+                document.getElementById('profileAvatar').src = `https://ui-avatars.com/api/?name=${displayName}&background=8b5cf6&color=fff&size=200`;
             } else {
                 localStorage.removeItem('jwt_token');
                 profileModal.classList.remove('active');
                 authModal.classList.add('active');
             }
-        } catch (err) { showToast('Lỗi tải dữ liệu!', 'error'); }
+        } catch (err) { showToast('Lỗi tải dữ liệu hồ sơ!', 'error'); }
     }
 
     // Đổi mật khẩu
@@ -406,11 +372,10 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch(e) { showToast('Lỗi kết nối mạng!', 'error'); }
     });
 
-    // Cập nhật Avatar
+    // Cập nhật Avatar (Giữ nguyên logic của bạn)
     document.getElementById('avatarUpload').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => document.getElementById('profileAvatar').src = event.target.result;
         reader.readAsDataURL(file);
@@ -427,49 +392,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: formData
             });
             let json = await res.json();
-            if (res.ok && json.success) {
-                showToast('Lưu ảnh đại diện thành công!', 'success');
-            } else {
-                showToast(json.message || 'Lỗi khi upload ảnh!', 'error');
-            }
+            if (res.ok && json.success) showToast('Lưu ảnh đại diện thành công!', 'success');
+            else showToast(json.message || 'Lỗi upload ảnh!', 'error');
         } catch(error) { showToast('Lỗi mạng khi upload!', 'error'); }
     });
 
-    // Đăng xuất từ giao diện Mobile
+    // Đăng xuất
     document.getElementById('btnLogoutMobile').addEventListener('click', () => {
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('jwtToken');
         profileModal.classList.remove('active');
-        showToast('Đã đăng xuất khỏi thiết bị!', 'success');
+        userProfileBtn.style.color = '#b5b8d9'; // Trả lại màu cũ
+        showToast('Đã đăng xuất!', 'success');
         setTimeout(() => window.location.reload(), 1000);
     });
+
     // --- HÀM KÍCH HOẠT CẢNH BÁO THIÊN TAI KHẨN CẤP ---
     function triggerDisasterAlert(warnings) {
         if (!warnings || warnings.length === 0) return;
-
-        // 1. RUNG MÁY (Vibration API)
-        if ("vibrate" in navigator) {
-            navigator.vibrate([1000, 500, 1000, 500, 2000]);
-        }
-
-        // 2. PHÁT ÂM THANH CÒI BÁO ĐỘNG
+        if ("vibrate" in navigator) navigator.vibrate([1000, 500, 1000, 500, 2000]);
         try {
             let siren = new Audio('https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg');
             siren.volume = 1.0;
-            siren.play().catch(e => console.warn("Trình duyệt chặn AutoPlay âm thanh cho đến khi User tương tác."));
+            siren.play().catch(e => console.warn("Trình duyệt chặn âm thanh."));
         } catch (e) {}
-
-        // 3. THÔNG BÁO ĐẨY CỦA HỆ ĐIỀU HÀNH
         if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("🚨 CẢNH BÁO THIÊN TAI KHẨN CẤP!", {
-                body: warnings[0],
-                icon: 'https://cdn-icons-png.flaticon.com/512/1157/1157000.png',
-                badge: 'https://cdn-icons-png.flaticon.com/512/1157/1157000.png',
-                vibrate: [200, 100, 200]
-            });
+            new Notification("🚨 CẢNH BÁO THIÊN TAI KHẨN CẤP!", { body: warnings[0], icon: 'https://cdn-icons-png.flaticon.com/512/1157/1157000.png', vibrate: [200, 100, 200] });
         }
-
-        // 4. HIỂN THỊ POPUP
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: '🚨 NGUY HIỂM!',
