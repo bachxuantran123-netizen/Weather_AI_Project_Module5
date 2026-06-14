@@ -1,85 +1,127 @@
-🚀 BẢN BÀN GIAO & KẾ HOẠCH DỰ ÁN: WEATHER AI (PHASE 3 - SPRINT 3)
+<div align="center">
+  <h1>🌤️ Weather AI - Smart Weather & AI Advisor</h1>
+  <p>
+    <b>Ứng dụng tra cứu thời tiết thông minh thế hệ mới, tích hợp sâu Trí tuệ Nhân tạo (AI).</b>
+  </p>
 
-Chào toàn team,
+<!-- Tech Stack Badges -->
+![Java](https://img.shields.io/badge/java-17-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/spring--boot-3.0-%236DB33F.svg?style=for-the-badge&logo=springboot&logoColor=white)
+![MySQL](https://img.shields.io/badge/mysql-8.0-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/redis-Cache-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-Ready-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-EC2-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
 
-Xin chúc mừng tất cả anh em! Chúng ta đã khép lại Phase 2 một cách cực kỳ bùng nổ. Hạ tầng Backend giờ đây không chỉ mạnh mẽ, bảo mật mà giao diện Admin Dashboard cũng đã được "độ" lại theo phong cách Dark Theme (Hi-Tech) cực kỳ chuyên nghiệp.
+</div>
 
-Bước sang Phase 3, mục tiêu tối thượng của chúng ta là "Đóng gói, Mở rộng API cho Mobile và Triển khai (Deployment)". Hãy đọc kỹ hướng dẫn cấu hình mới trước khi pull code về nhé!
+---
 
-🛠️ PHẦN 1: HƯỚNG DẪN CẤU HÌNH LOCAL CHO MÔI TRƯỜNG MỚI (BẮT BUỘC)
-Hệ thống hiện tại đã được Dockerize hoàn toàn (cả MySQL và Redis) và sử dụng biến môi trường cực kỳ nghiêm ngặt. Anh em làm theo 4 bước sau để chạy app:
+Khác với các ứng dụng thời tiết truyền thống, **Weather AI** không chỉ cung cấp các chỉ số đo lường (nhiệt độ, độ ẩm, sức gió, UV...) mà còn sử dụng AI (Google Gemini) để đóng vai trò như một *"trợ lý cá nhân"*. Hệ thống sẽ tự động đưa ra những lời khuyên chuẩn bị trang phục, vật dụng và cảnh báo an toàn theo thời gian thực dựa vào thời tiết tại vị trí của bạn.
 
-Clone & Cập nhật: Chạy lệnh git pull origin main và nhấn Reload All Gradle Projects.
+## 🚀 Tính năng nổi bật
 
-Tạo file .env: Trong thư mục gốc của project (cùng cấp với build.gradle), anh em TỰ TẠO một file tên là .env và dán các key bảo mật vào (Tuyệt đối không commit file này lên Git):
-   WEATHER_API_KEY=your_weather_api_key_here
-   GEMINI_API_KEY=your_gemini_api_key_here
-   JWT_SECRET_KEY=MinhLuongBachDuAnModule5WeatherAIDangCapVippro
-Khởi động Hạ tầng (Docker):
+### 📱 Dành cho Người dùng cuối (Mobile/Web Client)
+* 📍 **Tra cứu đa điểm:** Xem thời tiết hiện tại và dự báo 24 giờ tới tại mọi thành phố trên thế giới.
+* 🤖 **AI Cố vấn (Gemini AI):** Tự động phân tích dữ liệu thời tiết và trả về danh sách đồ dùng cần mang theo & các lưu ý an toàn.
+* ❤️ **Quản lý địa điểm:** Lưu trữ danh sách các vị trí yêu thích để tra cứu nhanh.
+* 🔒 **Bảo mật tối đa:** Xác thực người dùng bằng hệ thống token JWT kép (Access/Refresh Token) qua Redis.
 
-Đảm bảo Docker Desktop đang bật.
+### 💻 Dành cho Quản trị viên (Admin Dashboard)
+* 📊 **Thống kê trực quan:** Theo dõi biểu đồ lượng truy cập và tra cứu thời tiết thời gian thực bằng `Chart.js`.
+* 👥 **Quản lý tài khoản:** Xem danh sách, cấp quyền quản trị hoặc khóa tài khoản người dùng vi phạm.
+* 🛡️ **Rate Limiting:** Chống Spam/DDoS tự động với thuật toán Token Bucket (`Bucket4j`).
 
-Mở Terminal tại thư mục gốc và chạy: docker-compose up -d mysql redis
+---
 
-(Lưu ý: MySQL chạy ở port 3307, Redis chạy ở 6379).
+## 🛠️ Sơ đồ Kiến trúc & Công nghệ (Tech Stack)
 
-Khởi động App:
+### 1. Công nghệ lõi
+* **Backend:** `Java 17`, `Spring Boot 3`, `Spring Data JPA`, `Spring Security`.
+* **Caching & Session:** `Redis` (Quản lý Blacklist Token & Rate Limit).
+* **Database:** `MySQL 8.0`.
+* **Frontend:** `HTML5`, `CSS3`, `Vanilla JS`, `Thymeleaf`, `Chart.js`.
 
-Chạy class WeatherAiApplication trên IntelliJ.
+### 2. Dịch vụ bên thứ ba (Third-party APIs)
+* **WeatherAPI:** Lấy dữ liệu khí tượng chuẩn xác.
+* **Google Gemini AI:** Xử lý ngôn ngữ tự nhiên (NLP) & Trả lời tư vấn.
 
-Mở trình duyệt kiểm tra Admin UI: http://localhost:8080/admin/dashboard
+### 3. Cấu trúc thư mục tiêu biểu
+```text
+Weather_AI_Project_Module5/
+├── .github/workflows/   # Kịch bản tự động hóa CI/CD (GitHub Actions)
+├── src/main/java/       # Mã nguồn Java (Controllers, Services, Configs, Entities...)
+├── src/main/resources/  # File tĩnh (CSS/JS), giao diện Thymeleaf, application.properties
+├── docker-compose.yml   # Cấu hình cụm Docker (App, MySQL, Redis)
+├── Dockerfile           # Kịch bản đóng gói ứng dụng Spring Boot
+└── build.gradle         # Quản lý thư viện và dependencies
+```
 
-🏆 PHẦN 2: THÀNH QUẢ ĐẠT ĐƯỢC Ở PHASE 2
-Bảo mật & Rate Limiting: JWT Token Filter hoạt động hoàn hảo, kết hợp cùng Bucket4j (chặn spam quá 10 requests/phút). Tính năng Đăng xuất (Blacklist Token vào Redis) đã hoàn thành.
+---
 
-Tự động hóa Hạ tầng: Triển khai thành công docker-compose.yml. Giải quyết triệt để lỗi xung đột Port và Race Condition (chờ DB boot xong mới chạy App).
+## ⚙️ Hướng dẫn Cài đặt & Vận hành (Local & Production)
 
-Kiểm thử tự động: Đã có hệ thống Unit Test (JUnit 5 + Mockito) cho các luồng xử lý cốt lõi (AuthService, WeatherService).
+Hệ thống được đóng gói hoàn toàn bằng **Docker**, đảm bảo chạy mượt mà trên mọi môi trường (Windows, macOS, Linux, AWS EC2) chỉ với vài dòng lệnh.
 
-Giao diện Anti-Slop: Bảng Admin Dashboard đã được kết nối với API thật qua script.js (Fetch API), render biểu đồ Chart.js với phong cách UI Cyberpunk/Valorant sắc nét.
+### 1. Yêu cầu hệ thống
+* Cài đặt sẵn [Docker](https://docs.docker.com/get-docker/) và [Docker Compose](https://docs.docker.com/compose/install/).
+* Git.
 
-🎯 PHẦN 3: MỤC TIÊU TIẾP THEO & PHÂN CÔNG (SPRINT 3 - CHUẨN BỊ CHO MOBILE APP)
-Dự án ban đầu định hướng cung cấp API cho Mobile App (MVVM Pattern). Do đó, Sprint này tập trung vào việc chuẩn hóa API và Deploy.
+### 2. Các bước triển khai
 
-👤 1. Minh: Chuyên trách Security Nâng cao & User Profile
+**Bước 1: Clone mã nguồn về máy**
+```bash
+git clone https://github.com/bachxuantran123-netizen/Weather_AI_Project_Module5.git
+cd Weather_AI_Project_Module5
+```
 
-Nhiệm vụ: Hoàn thiện luồng xác thực dành cho thiết bị di động.
+**Bước 2: Cấu hình biến môi trường API** 
+Tạo một file `.env` ở thư mục gốc của dự án và điền các API Key của bạn:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+JWT_SECRET_KEY=your_super_secret_jwt_key_here
+WEATHER_API_KEY=your_weatherapi_key_here
+TZ=Asia/Ho_Chi_Minh
+```
 
-Công việc cụ thể:
+**Bước 3: Biên dịch mã nguồn (Build JAR)**
+```bash
+chmod +x gradlew
+./gradlew clean build -x test
+```
 
-Viết cơ chế Refresh Token (Vì Access Token hiện tại chỉ sống 24h, cần Refresh Token để user không phải login lại liên tục trên Mobile).
+**Bước 4: Khởi động cụm Server (App + MySQL + Redis) bằng Docker**
+```bash
+docker compose up -d --build
+```
+*(💡 Lưu ý: Nếu chạy trên máy chủ Linux/AWS, bạn cần thêm `sudo` trước lệnh `docker compose`)*
 
-Viết API lấy thông tin cá nhân (Profile) /api/v1/users/me.
+### 3. Truy cập hệ thống
+Sau khi Docker khởi động xong (khoảng 15-30 giây), bạn có thể truy cập:
+* **Giao diện Client:** `http://localhost:8080/mobile-preview`
+* **Giao diện Admin:** `http://localhost:8080/admin/dashboard`
 
-Cập nhật phân quyền Role rõ ràng (ROLE_ADMIN mới được vào trang /admin/, ROLE_USER chỉ gọi API thời tiết).
+---
 
-👤 2. Lương: Chuyên trách Mở rộng Feature API & AI
+## 🔌 Các luồng API chính (Endpoints)
 
-Nhiệm vụ: Biến AI thành một trợ lý đắc lực hơn.
+| HTTP Method | Endpoint | Mô tả chức năng | Quyền hạn yêu cầu |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Đăng ký tài khoản mới | `Public` |
+| `POST` | `/api/v1/auth/login` | Đăng nhập & Lấy JWT | `Public` |
+| `GET` | `/api/v1/weather/current?city={name}` | Lấy thời tiết & Lời khuyên AI | `Bearer Token` |
+| `POST` | `/api/v1/locations` | Lưu địa điểm yêu thích | `Bearer Token` |
+| `PUT` | `/api/v1/admin/users/{id}/status` | Khóa/Mở khóa tài khoản | `ROLE_ADMIN` |
 
-Công việc cụ thể:
+---
 
-Nâng cấp WeatherService: Tích hợp thêm API lấy dự báo thời tiết 3-5 ngày tới (Forecast API).
+## 👥 Đội ngũ Phát triển
 
-Nâng cấp Prompt cho Gemini trong AiAdvisorService: Trả về JSON cấu trúc rõ ràng thay vì String đơn thuần (Ví dụ: tách riêng mảng items_to_bring và warnings) để Mobile dễ parse UI.
+Dự án được xây dựng và phát triển với sự đóng góp của:
 
-👤 3. Bách: Core, OpenAPI & Deployment (DevOps)
+* 👨‍💻 **Trần Xuân Bách** - DevOps & Backend Developer *(Cloud Architecture, Security, Rate Limiting)*
+* 👨‍💻 **Lương** - Backend & Admin UI Developer *(Spring Boot, AI Integration, Dashboard)*
+* 👨‍💻 **Minh** - Frontend & Mobile UI Developer *(UI/UX, Data Binding, DOM Manipulation)*
 
-Nhiệm vụ: Viết tài liệu API cho team Mobile và đưa dự án lên Internet.
-
-Công việc cụ thể:
-
-Tích hợp Swagger / OpenAPI 3.0: Gắn các annotation để tự động sinh ra trang Document API (/swagger-ui.html), giúp team Mobile biết cách gọi API.
-
-CI/CD Cơ bản: Viết một file .github/workflows/build.yml để Github tự động chạy Unit Test mỗi khi có người push code.
-
-Deploy (Tùy chọn nâng cao): Tìm hiểu cách deploy Docker container này lên một VPS hoặc các nền tảng như Render/Railway/AWS.
-
-🚨 PHẦN 4: QUY TẮC LÀM VIỆC (GIỮ VỮNG KỶ LUẬT)
-Tuyệt đối không commit file .env lên Github.
-
-Bắt buộc rẽ nhánh theo Feature (VD: feature/refresh-token, feature/swagger-docs).
-
-Tạo Pull Request (PR), phải pass toàn bộ Unit Test hiện có mới được Merge.
-
-Tuân thủ triệt để nguyên tắc SOLID. Không viết logic nghiệp vụ vào Controller!
+<div align="center">
+  <p><i>Phát triển trong khuôn khổ Module 5 - 2026</i></p>
+</div>
