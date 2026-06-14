@@ -101,4 +101,11 @@ public class AuthService {
                 account.isActive()
         );
     }
+
+    public void updateDeviceToken(String username, String token) {
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        account.setFcmDeviceToken(token);
+        accountRepository.save(account);
+    }
 }

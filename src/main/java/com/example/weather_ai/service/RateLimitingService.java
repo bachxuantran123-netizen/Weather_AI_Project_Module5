@@ -12,16 +12,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class RateLimitingService {
 
-    // Lưu trữ Bucket tương ứng với từng username
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
 
     public Bucket resolveBucket(String username) {
-        // Lấy bucket của user ra, nếu chưa có thì tạo mới
         return cache.computeIfAbsent(username, this::newBucket);
     }
 
     private Bucket newBucket(String username) {
-        // Cấu hình: Đổ đầy 10 token, mỗi 1 phút hồi lại 10 token
         Refill refill = Refill.intervally(10, Duration.ofMinutes(1));
         Bandwidth limit = Bandwidth.classic(10, refill);
 

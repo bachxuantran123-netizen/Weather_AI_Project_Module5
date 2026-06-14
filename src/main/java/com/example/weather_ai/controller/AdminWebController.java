@@ -34,47 +34,11 @@ public class AdminWebController {
             @RequestParam(defaultValue = "5") int size,
             Model model) {
 
-        long activeUsers = accountRepository.count();
-
         Page<AccountLocation> locationPage = locationService.getPaginatedSavedLocations(page, size);
-
-        // 1. Lấy TỔNG SỐ THẬT từ bảng Lịch sử
-        long totalRequests = searchHistoryRepository.count();
-
-        // 2. Xử lý dữ liệu vẽ Chart (7 ngày gần nhất)
-        List<Object[]> stats = searchHistoryRepository.countRequestsByDayLast7Days();
-        List<String> chartLabels = new ArrayList<>();
-        List<Long> chartData = new ArrayList<>();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
-        for (Object[] row : stats) {
-            Object dateObj = row[0];
-            LocalDate localDate;
-            if (dateObj instanceof java.time.LocalDate) {
-                localDate = (java.time.LocalDate) dateObj;
-            } else if (dateObj instanceof java.sql.Date) {
-                localDate = ((java.sql.Date) dateObj).toLocalDate();
-            } else {
-                localDate = LocalDate.parse(dateObj.toString());
-            }
-
-            Long count = ((Number) row[1]).longValue();
-
-            chartLabels.add(localDate.format(formatter));
-            chartData.add(count);
-        }
 
         model.addAttribute("pageTitle", "Weather_AI | Admin Dashboard");
         model.addAttribute("welcomeMessage", "Chào mừng Admin!");
-        model.addAttribute("activeUsers", activeUsers);
-
         model.addAttribute("locationPage", locationPage);
-
-        model.addAttribute("totalRequests", totalRequests);
-        model.addAttribute("aiAdvicesGenerated", totalRequests);
-
-        model.addAttribute("chartLabels", chartLabels);
-        model.addAttribute("chartData", chartData);
 
         return "admin/dashboard";
     }

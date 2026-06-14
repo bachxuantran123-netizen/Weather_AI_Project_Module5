@@ -41,4 +41,17 @@ public class UserApiController {
         // ... Logic lưu file vào thư mục tĩnh, S3, hoặc Cloudinary, sau đó update Account record
         return ResponseEntity.ok(ApiResponse.success("Avatar upload successful", null));
     }
+
+    public record DeviceTokenRequest(String token) {}
+
+    @PostMapping("/device-token")
+    public ResponseEntity<?> updateDeviceToken(@RequestBody DeviceTokenRequest request, Principal principal) {
+        try {
+            String username = principal.getName();
+            authService.updateDeviceToken(username, request.token());
+            return ResponseEntity.ok(ApiResponse.success("Lưu Device Token thành công", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

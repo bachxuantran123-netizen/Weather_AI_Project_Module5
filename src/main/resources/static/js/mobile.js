@@ -175,17 +175,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 5. DATA BINDING: GỌI API THỜI TIẾT THỰC TẾ ---
     async function fetchRealWeather(city) {
-        if (city.trim().toLowerCase() === 'demacia' || city.trim().toLowerCase() === 'testbao') {
+        if (city.trim().toLowerCase() === 'demacia') {
             const mockData = {
-                cityName: "Gotham City", temperature: 36, condition: "Bão Siêu Cấp", tempHigh: 30, tempLow: 25, uvIndex: 1, humidity: 99, windSpeed: 200, visibility: 0,
+                cityName: "Gotham City",
+                temperature: 36,
+                condition: "Bão Siêu Cấp",
+                tempHigh: 30,
+                tempLow: 25,
+                uvIndex: 1,
+                humidity: 99,
+                windSpeed: 200,
+                visibility: 0,
                 aiAdvice: {
                     advice: "TÌM NƠI TRÚ ẨN NGAY LẬP TỨC!",
                     items_to_bring: ["Đèn pin", "Lương khô", "Áo phao"],
-                    warnings: ["BÃO CẤP 15 ĐANG TIẾN VÀO THÀNH PHỐ!", "NGUY CƠ SẠT LỞ ĐẤT VÀ LŨ QUÉT ĐẶC BIỆT NGHIÊM TRỌNG!"]
+                    warnings: [
+                        "BÃO CẤP 15 ĐANG TIẾN VÀO THÀNH PHỐ!",
+                        "NGUY CƠ SẠT LỞ ĐẤT VÀ LŨ QUÉT ĐẶC BIỆT NGHIÊM TRỌNG!"
+                    ]
                 },
                 hourlyForecast: []
             };
+            const searchModal = document.getElementById('searchModal');
             if (searchModal) searchModal.classList.remove('active');
+
             updateRealUI(mockData);
             return;
         }
@@ -263,8 +276,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const aiData = data.aiAdvice;
         if (aiData) {
-            if (aiData.warnings && aiData.warnings.length > 0) {
-                triggerDisasterAlert(aiData.warnings);
+            if (aiData.is_severe_disaster === true && aiData.warnings && aiData.warnings.length > 0) {
+                if (typeof triggerDisasterAlert === "function") {
+                    triggerDisasterAlert(aiData.warnings);
+                }
             }
             document.getElementById('aiAdviceContent').innerText = `"${aiData.advice}"`;
             let tagsHtml = '';
@@ -299,15 +314,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- 7. AUTO FETCH LOCATION ON LOAD ---
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => { fetchRealWeather(`${position.coords.latitude},${position.coords.longitude}`); },
-            (error) => { fetchRealWeather("Hanoi"); },
-            { enableHighAccuracy: true, timeout: 5000 }
-        );
-    } else {
-        fetchRealWeather("Hanoi");
+    async function initLocation() {
+        let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+        let hasLocationFromApi = false;
+
+        if (token && token !== 'undefined' && token !== 'null') {
+            try {
+                let res = await fetch('/api/v1/locations', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    let json = await res.json();
+                    if (json.success && json.data && json.data.length > 0) {
+                        fetchRealWeather(json.data[0].cityName);
+                        hasLocationFromApi = true;
+                    }
+                }
+            } catch (err) {
+                console.warn('Lỗi khi lấy danh sách vị trí tự động:', err);
+            }
+        }
+
+        // Fallback về GPS nếu không lấy được từ API
+        if (!hasLocationFromApi) {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => { fetchRealWeather(`${position.coords.latitude},${position.coords.longitude}`); },
+                    (error) => { fetchRealWeather("Hanoi"); },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                fetchRealWeather("Hanoi");
+            }
+        }
     }
+    initLocation();
 
     // --- 8. XỬ LÝ USER PROFILE (AVATAR & ĐỔI MẬT KHẨU) ---
     const profileModal = document.getElementById('profileModal');
@@ -433,4 +475,72 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
+
+    // --- 9. CÀI ĐẶT SERVICE WORKER & FIREBASE MESSAGING ---
+    async function initFCM() {
+        if (!('serviceWorker' in navigator)) return;
+
+        try {
+            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            console.log('Service Worker đăng ký thành công:', registration);
+
+            if (typeof firebase !== 'undefined') {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyD94NwWN-0JrLn-5h3ME2gDR69GQyk5Ze0",
+                    authDomain: "weatherai-956d2.firebaseapp.com",
+                    projectId: "weatherai-956d2",
+                    storageBucket: "weatherai-956d2.firebasestorage.app",
+                    messagingSenderId: "891706686099",
+                    appId: "1:891706686099:web:fe33af5fa85ae94a676b66",
+                    measurementId: "G-RKRY4L2TD5"
+                };
+
+                // Khởi tạo Firebase App nếu chưa có
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                const messaging = firebase.messaging();
+
+                // Xin quyền Notification
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    // Lấy FCM Device Token
+                    try {
+                        const currentToken = await messaging.getToken({ vapidKey: 'BHYXMG536k-yHHmqngnvksWVtG0KXLpew-WoA-vUC8n-XjjlLkXu2q51nc_FVPFCfPDdG14k213fuwmOuNQdTkw', serviceWorkerRegistration: registration });
+                        if (currentToken) {
+                            console.log('FCM Token:', currentToken);
+                            sendTokenToServer(currentToken);
+                        } else {
+                            console.log('Không lấy được Token, yêu cầu quyền.');
+                        }
+                    } catch (err) {
+                        console.warn('Lỗi lấy Firebase Token (có thể do thiếu Config):', err);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Service Worker Registration Failed:', error);
+        }
+    }
+
+    async function sendTokenToServer(token) {
+        let jwt = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+        if (!jwt || jwt === 'undefined' || jwt === 'null') return; // User chưa login
+
+        try {
+            await fetch('/api/v1/users/device-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`
+                },
+                body: JSON.stringify({ token: token })
+            });
+        } catch (err) {
+            console.error('Lỗi gửi Token lên Server', err);
+        }
+    }
+
+    // Gọi hàm initFCM() (Luồng code đã sẵn sàng để chạy thật khi có Firebase Credentials)
+    initFCM();
 });

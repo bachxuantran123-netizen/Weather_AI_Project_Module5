@@ -51,7 +51,8 @@ public class AiAdvisorService {
                 {
                     "advice": "lời khuyên chung dưới 30 chữ",
                     "items_to_bring": ["món đồ 1", "món đồ 2"],
-                    "warnings": ["cảnh báo 1", "cảnh báo 2"]
+                    "warnings": ["cảnh báo 1", "cảnh báo 2"],
+                    "is_severe_disaster": true/false (CHỈ ĐỂ LÀ true NẾU ĐÂY LÀ THIÊN TAI ĐE DỌA TÍNH MẠNG NHƯ BÃO, LŨ QUÉT, ĐỘNG ĐẤT, SÓNG THẦN. NẾU CHỈ MƯA, NẮNG NÓNG BÌNH THƯỜNG THÌ ĐỂ LÀ false)
                 }
                 """,
                 currentData.getCondition().getText(),
@@ -77,13 +78,14 @@ public class AiAdvisorService {
                         String jsonString = response.getCandidates().get(0).getContent().getParts().get(0).getText();
                         return objectMapper.readValue(jsonString, AiAdviceDto.class);
                     } catch (Exception e) {
-                        return new AiAdviceDto("LỖI JSON: Không thể phân tích phản hồi từ AI.", List.of(), List.of());
+                        return new AiAdviceDto("LỖI JSON: Không thể phân tích phản hồi từ AI.", List.of(), List.of(), false);
                     }
                 })
                 .onErrorResume(e -> Mono.just(new AiAdviceDto(
                         "Hệ thống AI đang bận. Vui lòng chú ý an toàn nếu thời tiết xấu.",
                         List.of("Trang phục phù hợp với nhiệt độ"),
-                        List.of()
+                        List.of(),
+                        false
                 )));
     }
 }

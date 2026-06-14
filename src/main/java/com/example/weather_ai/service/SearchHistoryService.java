@@ -15,9 +15,8 @@ public class SearchHistoryService {
     private final SearchHistoryRepository searchHistoryRepository;
     private final AccountRepository accountRepository;
 
-    @Async // Đánh dấu hàm này chạy trên một Thread (luồng) riêng
+    @Async
     public void logSearchAsync(String username, String cityName) {
-        // Tìm User, nếu có thì lưu lịch sử
         accountRepository.findByUsername(username).ifPresent(account -> {
             SearchHistory history = new SearchHistory();
             history.setAccount(account);
