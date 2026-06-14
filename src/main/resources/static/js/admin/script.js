@@ -2,46 +2,79 @@
 document.addEventListener("DOMContentLoaded", function() {
     console.log("[SYSTEM_INIT] Admin Dashboard Loaded.");
 
-    const ctx = document.getElementById('trafficChart');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: window.dynamicChartLabels && window.dynamicChartLabels.length > 0 ? window.dynamicChartLabels : ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-                datasets: [{
-                    label: 'Requests',
-                    data: window.dynamicChartData && window.dynamicChartData.length > 0 ? window.dynamicChartData : [12, 19, 30, 25, 42, 38, 50],
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#8b5cf6',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    pointStyle: 'circle'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: {
-                        grid: { color: '#edf2f7', drawBorder: false },
-                        ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#edf2f7', borderDash: [5, 5] },
-                        ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
+    async function fetchDashboardStats() {
+        const token = localStorage.getItem("jwt_token");
+        if (!token) return;
+
+        try {
+            const res = await fetch('/api/admin/stats', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (res.ok) {
+                const json = await res.json();
+                if (json.success) {
+                    const data = json.data;
+                    
+                    const elTotalRequests = document.getElementById('totalRequests');
+                    if (elTotalRequests) elTotalRequests.innerText = data.totalRequests;
+                    
+                    const elAiAdvices = document.getElementById('aiAdvicesGenerated');
+                    if (elAiAdvices) elAiAdvices.innerText = data.aiAdvicesGenerated;
+                    
+                    const elActiveUsers = document.getElementById('activeUsers');
+                    if (elActiveUsers) elActiveUsers.innerText = data.totalUsers;
+
+                    const ctx = document.getElementById('trafficChart');
+                    if (ctx) {
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.chartLabels && data.chartLabels.length > 0 ? data.chartLabels : ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                                datasets: [{
+                                    label: 'Requests',
+                                    data: data.chartData && data.chartData.length > 0 ? data.chartData : [12, 19, 30, 25, 42, 38, 50],
+                                    borderColor: '#8b5cf6',
+                                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                                    borderWidth: 3,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointBackgroundColor: '#ffffff',
+                                    pointBorderColor: '#8b5cf6',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
+                                    pointStyle: 'circle'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    x: {
+                                        grid: { color: '#edf2f7', drawBorder: false },
+                                        ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: '#edf2f7', borderDash: [5, 5] },
+                                        ticks: { color: '#a0aec0', font: { family: 'Nunito', weight: 600 } }
+                                    }
+                                }
+                            }
+                        });
                     }
                 }
             }
-        });
+        } catch (err) {
+            console.error("Lỗi lấy dữ liệu thống kê: ", err);
+        }
     }
+
+    fetchDashboardStats();
 
     // 1. TÍNH NĂNG ĐĂNG XUẤT (LOGOUT)
     const logoutBtn = document.querySelector('.text-danger');

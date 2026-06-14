@@ -17,4 +17,7 @@ public class AiAdviceDto {
     private List<String> itemsToBring;
 
     private List<String> warnings;
+
+    @JsonProperty("is_severe_disaster")
+    private boolean isSevereDisaster;
 }

@@ -28,6 +28,9 @@ public class Account {
     @Column(nullable = false)
     private String role = "USER";
 
+    @Column(name = "fcm_device_token", length = 512)
+    private String fcmDeviceToken;
+
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccountLocation> trackedLocations = new ArrayList<>();
 
