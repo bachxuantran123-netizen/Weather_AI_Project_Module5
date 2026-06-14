@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đang xác thực...</title>
+</head>
+<body style="background: #0f1c3f; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
+<h3><i class="fa-solid fa-spinner fa-spin"></i> Đang hoàn tất đăng nhập Google...</h3>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+
+    if (error === 'locked') {
+        alert('Tài khoản của bạn đã bị khóa bởi Quản trị viên!');
+        window.location.href = '/mobile-preview';
+    } else if (token) {
+        localStorage.setItem('jwt_token', token);
+        window.location.href = '/mobile-preview';
+    } else {
+        window.location.href = '/mobile-preview';
+    }
+</script>
+</body>
+</html>
