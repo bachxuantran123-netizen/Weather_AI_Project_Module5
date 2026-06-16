@@ -192,7 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     warnings: [
                         "BÃO CẤP 15 ĐANG TIẾN VÀO THÀNH PHỐ!",
                         "NGUY CƠ SẠT LỞ ĐẤT VÀ LŨ QUÉT ĐẶC BIỆT NGHIÊM TRỌNG!"
-                    ]
+                    ],
+                    is_severe_disaster: true
                 },
                 hourlyForecast: []
             };
