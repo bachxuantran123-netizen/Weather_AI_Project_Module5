@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+    let currentLat = 21.0285;
+    let currentLon = 105.8542;
     if ("Notification" in window) {
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
             Notification.requestPermission().then(permission => {
@@ -258,6 +260,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 6. RENDER DỮ LIỆU JSON LÊN DOM ---
     function updateRealUI(data) {
+        if (data.lat && data.lon) {
+            currentLat = data.lat;
+            currentLon = data.lon;
+        }
         document.getElementById('cityName').innerText = data.cityName;
         document.getElementById('temperature').innerText = Math.round(data.temperature);
         document.getElementById('condition').innerText = data.condition;
@@ -542,6 +548,161 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Gọi hàm initFCM() (Luồng code đã sẵn sàng để chạy thật khi có Firebase Credentials)
+    // --- XỬ LÝ BẢN ĐỒ RADAR (LA BÀN) ---
+    const radarModal = document.getElementById('radarModal');
+    const closeRadarModal = document.getElementById('closeRadarModal');
+    const radarNavBtn = document.getElementById('radarNavBtn');
+    const windyIframe = document.getElementById('windyIframe');
+    const homeNavBtn = document.getElementById('homeNavBtn');
+
+    if (radarNavBtn) {
+        radarNavBtn.addEventListener('click', () => {
+            radarModal.classList.add('active');
+
+            const windyUrl = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=10&overlay=rain&product=ecmwf&level=surface&lat=${currentLat}&lon=${currentLon}`;
+
+            if (windyIframe.src !== windyUrl) {
+                windyIframe.src = windyUrl;
+            }
+        });
+    }
+
+    if (closeRadarModal) {
+        closeRadarModal.addEventListener('click', () => {
+            radarModal.classList.remove('active');
+            if (homeNavBtn) homeNavBtn.click();
+        });
+    }
+
+    // TÍNH NĂNG CỘNG ĐỒNG
+    const communityModal = document.getElementById('communityModal');
+    const closeCommunityModal = document.getElementById('closeCommunityModal');
+    const communityNavBtn = document.getElementById('communityNavBtn');
+
+    const btnShowPostForm = document.getElementById('btnShowPostForm');
+    const postReportForm = document.getElementById('postReportForm');
+    const btnCancelReport = document.getElementById('btnCancelReport');
+    const btnSubmitReport = document.getElementById('btnSubmitReport');
+    const communityFeed = document.getElementById('communityFeed');
+    const communityCityName = document.getElementById('communityCityName');
+
+    // Mở bảng tin Cộng Đồng
+    if (communityNavBtn) {
+        communityNavBtn.addEventListener('click', () => {
+            let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+            if (!token || token === 'undefined' || token === 'null') {
+                showToast('Bạn cần đăng nhập để tham gia Cộng đồng!', 'error');
+                document.getElementById('authModal').classList.add('active');
+                return;
+            }
+
+            const currentCity = document.getElementById('cityName').innerText;
+            if (currentCity === "Đang tải...") return;
+
+            communityModal.classList.add('active');
+            communityCityName.innerText = "- " + currentCity;
+            loadCommunityReports(currentCity);
+        });
+    }
+
+    // Đóng Modal
+    if (closeCommunityModal) {
+        closeCommunityModal.addEventListener('click', () => {
+            communityModal.classList.remove('active');
+            if (homeNavBtn) homeNavBtn.click();
+        });
+    }
+
+    // Ẩn/Hiện form viết bài
+    btnShowPostForm.addEventListener('click', () => {
+        postReportForm.style.display = 'block';
+        btnShowPostForm.style.display = 'none';
+    });
+    btnCancelReport.addEventListener('click', () => {
+        postReportForm.style.display = 'none';
+        btnShowPostForm.style.display = 'block';
+    });
+
+    // Lấy dữ liệu từ Backend
+    async function loadCommunityReports(city) {
+        communityFeed.innerHTML = '<div style="text-align:center; color:#b5b8d9;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
+        try {
+            let res = await fetch(`/api/v1/community/reports?city=${encodeURIComponent(city)}`);
+            let json = await res.json();
+            if (res.ok && json.success) {
+                renderReports(json.data);
+            } else {
+                communityFeed.innerHTML = '<div style="text-align:center; color:#ff4d4d;">Lỗi tải dữ liệu.</div>';
+            }
+        } catch(e) {
+            communityFeed.innerHTML = '<div style="text-align:center; color:#ff4d4d;">Lỗi kết nối máy chủ.</div>';
+        }
+    }
+
+    // Vẽ HTML danh sách báo cáo
+    function renderReports(reports) {
+        if (!reports || reports.length === 0) {
+            communityFeed.innerHTML = '<div style="text-align:center; color:#b5b8d9; margin-top: 20px;">Khu vực này hiện đang an toàn.<br>Chưa có cảnh báo nào!</div>';
+            return;
+        }
+
+        let html = '';
+        reports.forEach(r => {
+            let icon = '⚠️', typeName = 'Sự cố khác';
+            if(r.reportType === 'NGAP_LUT') { icon = '🌊'; typeName = 'Ngập lụt'; }
+            if(r.reportType === 'TAC_DUONG') { icon = '🚗'; typeName = 'Tắc đường'; }
+            if(r.reportType === 'CAY_DO') { icon = '🌳'; typeName = 'Cây đổ'; }
+            if(r.reportType === 'MUA_DA') { icon = '🧊'; typeName = 'Mưa đá'; }
+
+            let date = new Date(r.time);
+            let timeString = date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) + ' - ' + date.toLocaleDateString('vi-VN');
+
+            html += `
+                <div style="background: #2a2d46; padding: 12px; border-radius: 10px; border-left: 4px solid #4facfe;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: bold; color: #fff;"><i class="fa-solid fa-user-circle"></i> @${r.username}</span>
+                        <span style="font-size: 0.75rem; color: #a2a5cc;">${timeString}</span>
+                    </div>
+                    <div style="color: #4facfe; font-weight: bold; margin-bottom: 5px;">${icon} ${typeName}</div>
+                    <div style="color: #e2e8f0; font-size: 0.95rem; line-height: 1.4;">${r.description}</div>
+                </div>
+            `;
+        });
+        communityFeed.innerHTML = html;
+    }
+
+    // Đẩy báo cáo lên Server
+    btnSubmitReport.addEventListener('click', async () => {
+        let token = localStorage.getItem('jwt_token') || localStorage.getItem('jwtToken');
+        const city = document.getElementById('cityName').innerText;
+        const type = document.getElementById('reportType').value;
+        const desc = document.getElementById('reportDesc').value;
+
+        if(!desc.trim()) return showToast('Vui lòng nhập mô tả chi tiết!', 'error');
+
+        try {
+            let res = await fetch('/api/v1/community/reports', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ cityName: city, reportType: type, description: desc })
+            });
+            let json = await res.json();
+
+            if (res.ok && json.success) {
+                showToast('Đã gửi cảnh báo thành công!', 'success');
+                document.getElementById('reportDesc').value = '';
+                btnCancelReport.click();
+                loadCommunityReports(city);
+            } else {
+                showToast(json.message || 'Lỗi khi đăng báo cáo!', 'error');
+            }
+        } catch(e) {
+            showToast('Lỗi kết nối mạng!', 'error');
+        }
+    });
+
     initFCM();
 });

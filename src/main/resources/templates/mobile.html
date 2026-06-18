@@ -87,10 +87,10 @@
 </div>
 
 <div class="bottom-nav">
-    <div class="nav-item"><i class="fa-solid fa-map-location-dot"></i></div>
-    <div class="nav-item active"><i class="fa-regular fa-compass"></i></div>
+    <div class="nav-item active" id="homeNavBtn"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div class="nav-item" id="radarNavBtn"><i class="fa-regular fa-compass"></i></div>
     <div class="nav-fab" id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></div>
-    <div class="nav-item"><i class="fa-solid fa-chart-pie"></i></div>
+    <div class="nav-item" id="communityNavBtn"><i class="fa-solid fa-circle-nodes"></i></div>
     <div class="nav-item" id="userProfileBtn"><i class="fa-solid fa-user"></i></div>
 </div>
 
@@ -185,6 +185,47 @@
         <button class="btn-auth btn-danger mt-3" id="btnLogoutMobile">
             <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng Xuất
         </button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="radarModal">
+    <div class="modal-content" style="height: 85vh; width: 95%; max-width: 500px; display: flex; flex-direction: column; padding: 15px;">
+        <i class="fa-solid fa-xmark modal-close" id="closeRadarModal" style="top: 10px; right: 15px; z-index: 10;"></i>
+        <div class="modal-header" style="margin-bottom: 10px;">Bản Đồ Radar</div>
+        <div style="flex: 1; border-radius: 15px; overflow: hidden; position: relative;">
+            <iframe id="windyIframe" width="100%" height="100%" style="border: none; position: absolute; top: 0; left: 0;" src="" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="communityModal">
+    <div class="modal-content" style="height: 85vh; width: 95%; max-width: 500px; display: flex; flex-direction: column; padding: 15px; background: #1e213a;">
+        <i class="fa-solid fa-xmark modal-close" id="closeCommunityModal" style="top: 10px; right: 15px; z-index: 10;"></i>
+        <div class="modal-header" style="margin-bottom: 10px; color: #fff;">
+            Cộng Đồng <span id="communityCityName" style="color: #4facfe;">Hà Nội</span>
+        </div>
+
+        <button class="btn-auth mb-3" id="btnShowPostForm" style="background: #4facfe; border-radius: 20px;">
+            <i class="fa-solid fa-pen"></i> Đăng báo cáo sự cố
+        </button>
+
+        <div id="postReportForm" style="display: none; background: #2a2d46; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+            <select id="reportType" class="form-control mb-2" style="background: #1e213a; color: #fff; border: 1px solid #4a4e69;">
+                <option value="NGAP_LUT">🌊 Ngập lụt nghiêm trọng</option>
+                <option value="TAC_DUONG">🚗 Kẹt xe kéo dài</option>
+                <option value="CAY_DO">🌳 Cây gãy / Cột điện đổ</option>
+                <option value="MUA_DA">🧊 Mưa đá / Thời tiết cực đoan</option>
+                <option value="KHAC">⚠️ Sự cố khác</option>
+            </select>
+            <textarea id="reportDesc" class="form-control mb-2" rows="3" placeholder="Mô tả chi tiết (VD: Đường Nguyễn Trãi ngập nửa bánh xe...)" style="background: #1e213a; color: #fff; border: 1px solid #4a4e69;"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-auth" id="btnSubmitReport" style="flex: 1; padding: 10px;">Gửi Cảnh Báo</button>
+                <button class="btn-auth btn-danger" id="btnCancelReport" style="flex: 1; padding: 10px;">Hủy</button>
+            </div>
+        </div>
+
+        <div id="communityFeed" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;">
+        </div>
     </div>
 </div>
 

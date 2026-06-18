@@ -1,11 +1,17 @@
 package com.example.weather_ai.controller.api;
 
 import com.example.weather_ai.dto.ApiResponse;
+import com.example.weather_ai.entity.CommunityReport;
 import com.example.weather_ai.repository.AccountRepository;
+import com.example.weather_ai.repository.CommunityReportRepository;
 import com.example.weather_ai.repository.SearchHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -14,6 +20,7 @@ public class AdminApiController {
 
     private final AccountRepository accountRepository;
     private final SearchHistoryRepository searchHistoryRepository;
+    private final CommunityReportRepository communityReportRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<?> getDashboardStats() {
@@ -73,5 +80,32 @@ public class AdminApiController {
 
             return ResponseEntity.ok("Đã xóa tài khoản thành công!");
         }).orElseGet(() -> ResponseEntity.badRequest().body("Không tìm thấy người dùng!"));
+    }
+
+    @GetMapping("/community")
+    public ResponseEntity<?> getAllCommunityReports() {
+        // Lấy tất cả báo cáo, sắp xếp mới nhất lên đầu
+        List<CommunityReport> reports =
+                communityReportRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "reportTime"));
+
+        List<Map<String, Object>> responseData = reports.stream().map(r -> Map.<String, Object>of(
+                "id", r.getId(),
+                "username", r.getAccount().getUsername(),
+                "cityName", r.getCityName(),
+                "reportType", r.getReportType(),
+                "description", r.getDescription(),
+                "time", r.getReportTime().toString()
+        )).collect(Collectors.toList());
+        return ResponseEntity.ok(new com.example.weather_ai.dto.ApiResponse(true, "Thành công", responseData));
+    }
+
+    @DeleteMapping("/community/{id}")
+    public ResponseEntity<?> deleteCommunityReport(@PathVariable Long id) {
+        try {
+            communityReportRepository.deleteById(id);
+            return ResponseEntity.ok(new com.example.weather_ai.dto.ApiResponse(true, "Đã xóa báo cáo thành công!", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new com.example.weather_ai.dto.ApiResponse(false, "Lỗi khi xóa báo cáo", null));
+        }
     }
 }
