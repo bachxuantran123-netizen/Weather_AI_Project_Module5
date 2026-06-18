@@ -1,12 +1,15 @@
 package com.example.weather_ai.controller;
 
+import com.example.weather_ai.entity.Account;
 import com.example.weather_ai.entity.AccountLocation;
+import com.example.weather_ai.entity.SearchHistory;
 import com.example.weather_ai.repository.AccountLocationRepository;
 import com.example.weather_ai.repository.AccountRepository;
 import com.example.weather_ai.repository.SearchHistoryRepository;
 import com.example.weather_ai.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,9 +48,25 @@ public class AdminWebController {
 
     @GetMapping("/users")
     public String showUsersManager(Model model) {
-        List<com.example.weather_ai.entity.Account> users = accountRepository.findAll();
+        List<Account> users = accountRepository.findAll();
         model.addAttribute("users", users);
         model.addAttribute("pageTitle", "Weather_AI | Quản lý User");
         return "admin/users";
+    }
+
+    @GetMapping("/locations")
+    public String showLocations(Model model) {
+        List<AccountLocation> locations = accountLocationRepository.findAll();
+        model.addAttribute("locations", locations);
+        model.addAttribute("pageTitle", "Weather_AI | Địa điểm yêu thích");
+        return "admin/locations";
+    }
+
+    @GetMapping("/ai-history")
+    public String showAiHistory(Model model) {
+        List<SearchHistory> histories = searchHistoryRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        model.addAttribute("histories", histories);
+        model.addAttribute("pageTitle", "Weather_AI | Lịch sử AI");
+        return "admin/ai-history";
     }
 }

@@ -23,14 +23,14 @@ public class WeatherApiController {
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentWeatherWithAdvice(@RequestParam String city, Principal principal) {
 
-        // 1. Kích hoạt lưu lịch sử chạy ngầm (Không block luồng chính)
+        // Lưu lịch sử chạy ngầm
+        String username = null;
         if (principal != null) {
-            String username = principal.getName();
+            username = principal.getName();
             searchHistoryService.logSearchAsync(username, city);
         }
 
-        // 2. Gọi logic lấy thời tiết (vẫn tận dụng được Redis Cache nguyên vẹn)
-        WeatherAdviceResponse response = weatherFacadeService.getWeatherWithAdvice(city);
+        WeatherAdviceResponse response = weatherFacadeService.getWeatherWithAdvice(city, username);
         return ResponseEntity.ok(response);
     }
 }
