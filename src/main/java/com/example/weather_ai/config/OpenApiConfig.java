@@ -14,8 +14,6 @@ import java.security.Principal;
 
 @Configuration
 public class OpenApiConfig {
-
-    // THÊM KHỐI STATIC NÀY ĐỂ BỊT MẮT SWAGGER TOÀN CỤC
     static {
         SpringDocUtils.getConfig().addRequestWrapperToIgnore(Principal.class);
     }

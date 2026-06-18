@@ -95,7 +95,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 } catch (err) { console.error("[LOGOUT_ERROR]", err); }
             }
 
-            // Xóa rác, đưa về Login
             localStorage.removeItem("jwt_token");
             document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.href = "/admin-login";
@@ -210,4 +209,93 @@ window.showCyberToast = function(title, message, type) {
         toast.style.transform = 'translateX(100%)';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+};
+
+// 5. TÍNH NĂNG XUẤT BÁO CÁO (EXPORT CSV)
+const btnExport = document.getElementById('btnExportReport');
+if (btnExport) {
+    btnExport.addEventListener('click', () => {
+        window.showCyberToast("HỆ THỐNG", "Đang trích xuất dữ liệu...", "success");
+
+        // Giả lập luồng xuất file CSV ở Frontend (Sau này có thể thay bằng fetch API)
+        setTimeout(() => {
+            const tableRows = document.querySelectorAll('.table-custom tbody tr');
+            let csvContent = "data:text/csv;charset=utf-8,User,Thành phố,Trạng thái\n";
+
+            tableRows.forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if(cols.length >= 3) {
+                    const user = cols[0].innerText;
+                    const city = cols[1].innerText;
+                    const status = cols[2].innerText;
+                    csvContent += `${user},${city},${status}\n`;
+                }
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `WeatherAI_Report_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }, 1000);
+    });
+}
+
+// 6. CÁC NÚT THAO TÁC TRÊN DANH SÁCH USER
+
+// Nút Xem
+window.viewUser = function(id) {
+    Swal.fire({
+        title: 'Thông tin User #' + id,
+        text: 'Tính năng xem chi tiết hoạt động của User đang được phát triển (Phase 4).',
+        icon: 'info',
+        confirmButtonColor: '#8b5cf6'
+    });
+};
+
+// Nút Sửa (Phân quyền)
+window.editUser = function(id) {
+    Swal.fire({
+        title: 'Phân quyền User #' + id,
+        text: 'Chức năng nâng cấp lên quyền Admin đang được phát triển.',
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b'
+    });
+};
+
+// Nút Xóa
+window.deleteUser = async function(id, username) {
+    const result = await Swal.fire({
+        title: 'Xác nhận xóa?',
+        html: `Bạn có chắc chắn muốn xóa tài khoản <b>${username}</b>? Hành động này sẽ khóa vĩnh viễn tài khoản.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fa-solid fa-trash me-2"></i>Xóa ngay!',
+        cancelButtonText: 'Hủy'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const token = localStorage.getItem("jwt_token");
+            const response = await fetch(`/api/admin/users/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                Swal.fire('Đã xóa!', `Tài khoản ${username} đã bị xóa khỏi hệ thống.`, 'success')
+                    .then(() => window.location.reload());
+            } else {
+                Swal.fire('Lỗi thao tác!', 'Không thể xóa tài khoản này.', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Mất kết nối', 'Không thể kết nối tới server.', 'error');
+        }
+    }
 };

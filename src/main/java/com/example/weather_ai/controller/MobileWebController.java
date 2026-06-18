@@ -5,6 +5,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class MobileWebController {
+    @GetMapping("/")
+    public String redirectToUser() {
+        return "redirect:/mobile-preview";
+    }
 
     @GetMapping("/mobile-preview")
     public String showMobilePrototype() {

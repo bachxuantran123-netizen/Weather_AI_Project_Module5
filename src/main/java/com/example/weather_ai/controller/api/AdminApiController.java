@@ -1,5 +1,6 @@
 package com.example.weather_ai.controller.api;
 
+import com.example.weather_ai.dto.ApiResponse;
 import com.example.weather_ai.repository.AccountRepository;
 import com.example.weather_ai.repository.SearchHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,7 @@ public class AdminApiController {
         java.util.Map<String, Object> response = new java.util.HashMap<>();
         response.put("totalUsers", totalUsers);
         response.put("totalRequests", totalRequests);
-        response.put("aiAdvicesGenerated", totalRequests); // Fake logic cho bằng với số request
+        response.put("aiAdvicesGenerated", totalRequests);
         response.put("chartLabels", chartLabels);
         response.put("chartData", chartData);
         
@@ -55,14 +56,22 @@ public class AdminApiController {
     @PutMapping("/{id}/toggle-lock")
     public ResponseEntity<?> toggleUserLock(@PathVariable Long id) {
         return accountRepository.findById(id).map(account -> {
-
-            // Đảo ngược trạng thái hiện tại
             account.setActive(!account.isActive());
             accountRepository.save(account);
 
             String status = account.isActive() ? "đã được MỞ KHÓA" : "đã BỊ KHÓA";
             return ResponseEntity.ok("Tài khoản " + account.getUsername() + " " + status + " thành công!");
 
+        }).orElseGet(() -> ResponseEntity.badRequest().body("Không tìm thấy người dùng!"));
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        return accountRepository.findById(id).map(account -> {
+            account.setActive(false);
+            accountRepository.save(account);
+
+            return ResponseEntity.ok("Đã xóa tài khoản thành công!");
         }).orElseGet(() -> ResponseEntity.badRequest().body("Không tìm thấy người dùng!"));
     }
 }

@@ -29,10 +29,9 @@ public class AiAdvisorService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public Mono<AiAdviceDto> getAdviceFromWeather(WeatherApiResponse weatherData) {
+    public Mono<AiAdviceDto> getAdviceFromWeather(WeatherApiResponse weatherData, String calendarEvents) {
         WeatherApiResponse.CurrentDto currentData = weatherData.getCurrent();
 
-        // Xử lý chuỗi cảnh báo thiên tai (Nếu có)
         StringBuilder alertsText = new StringBuilder();
         if (weatherData.getAlerts() != null && weatherData.getAlerts().getAlert() != null && !weatherData.getAlerts().getAlert().isEmpty()) {
             alertsText.append("\n⚠️ ĐANG CÓ CẢNH BÁO THỜI TIẾT KHẨN CẤP TẠI KHU VỰC NÀY:\n");
@@ -43,22 +42,29 @@ public class AiAdvisorService {
         }
 
         String prompt = String.format("""
-                Thời tiết đang là %s, nhiệt độ %s độ C, chỉ số UV %s. %s
-                Hãy đóng vai chuyên gia thời tiết đưa ra lời khuyên. 
-                🚨 NẾU CÓ CẢNH BÁO THỜI TIẾT KHẨN CẤP BÊN TRÊN: Hãy BỎ QUA các lời khuyên thông thường, ƯU TIÊN đưa ra lời khuyên sinh tồn, an toàn tính mạng trong phần 'warnings' và 'advice'.
-                BẮT BUỘC trả về dữ liệu dưới định dạng JSON, KHÔNG bọc trong markdown block.
-                Cấu trúc JSON yêu cầu:
-                {
-                    "advice": "lời khuyên chung dưới 30 chữ",
-                    "items_to_bring": ["món đồ 1", "món đồ 2"],
-                    "warnings": ["cảnh báo 1", "cảnh báo 2"],
-                    "is_severe_disaster": true/false (CHỈ ĐỂ LÀ true NẾU ĐÂY LÀ THIÊN TAI ĐE DỌA TÍNH MẠNG NHƯ BÃO, LŨ QUÉT, ĐỘNG ĐẤT, SÓNG THẦN. NẾU CHỈ MƯA, NẮNG NÓNG BÌNH THƯỜNG THÌ ĐỂ LÀ false)
-                }
-                """,
+            Thời tiết đang là %s, nhiệt độ %s độ C, chỉ số UV %s. %s
+            
+            📅 THÔNG TIN LỊCH TRÌNH:
+            %s
+            
+            Hãy đóng vai một trợ lý ảo thông minh đưa ra lời khuyên cho tôi. 
+            🚨 NẾU CÓ CẢNH BÁO THỜI TIẾT KHẨN CẤP: BỎ QUA các lời khuyên thông thường, ƯU TIÊN đưa ra chỉ dẫn sinh tồn, an toàn tính mạng.
+            🚨 LƯU Ý VỀ LỊCH TRÌNH: Hãy đọc lịch trình của tôi bên trên. Tư vấn giúp tôi sắp xếp thời gian di chuyển, mang theo đồ đạc phù hợp với sự kiện, hoặc đề xuất dời lịch nếu thời tiết quá khắc nghiệt.
+            
+            BẮT BUỘC trả về dữ liệu dưới định dạng JSON, KHÔNG bọc trong markdown block.
+            Cấu trúc JSON yêu cầu:
+            {
+                "advice": "lời khuyên chung dưới 40 chữ (kết hợp phân tích cả thời tiết và lịch trình)",
+                "items_to_bring": ["món đồ 1", "món đồ 2"],
+                "warnings": ["cảnh báo 1", "cảnh báo 2"],
+                "is_severe_disaster": true/false
+            }
+            """,
                 currentData.getCondition().getText(),
                 currentData.getTempC(),
                 currentData.getUv(),
-                alertsText.toString()
+                alertsText.toString(),
+                (calendarEvents != null && !calendarEvents.isBlank()) ? calendarEvents : "Tôi không có lịch trình nào đặc biệt hôm nay."
         );
 
         Map<String, Object> requestBody = Map.of(

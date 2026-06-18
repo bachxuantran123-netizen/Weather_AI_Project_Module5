@@ -38,4 +38,13 @@ public class Account {
         AccountLocation accountLocation = new AccountLocation(this, location, alias);
         trackedLocations.add(accountLocation);
     }
+
+    @Column(name = "google_access_token", length = 2048)
+    private String googleAccessToken;
+
+    @Column(name = "google_refresh_token", length = 2048)
+    private String googleRefreshToken;
+
+    @Column(name = "google_token_expiry")
+    private Long googleTokenExpiry;
 }

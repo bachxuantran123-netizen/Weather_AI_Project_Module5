@@ -2,6 +2,8 @@ package com.example.weather_ai.service;
 
 import com.example.weather_ai.dto.WeatherAdviceResponse;
 import com.example.weather_ai.dto.WeatherApiResponse;
+import com.example.weather_ai.entity.Account;
+import com.example.weather_ai.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -16,21 +18,29 @@ public class WeatherFacadeService {
 
     private final WeatherService weatherService;
     private final AiAdvisorService aiAdvisorService;
+    private final CalendarService calendarService;
+    private final AccountRepository accountRepository;
 
     @Cacheable(
             value = "weatherCache",
-            key = "#city",
+            key = "#city + '_' + (#username != null ? #username : 'guest')",
             unless = "#result.aiAdvice == null || #result.aiAdvice.advice == null || #result.aiAdvice.advice.contains('LỖI')"
     )
-    public WeatherAdviceResponse getWeatherWithAdvice(String city) {
+    public WeatherAdviceResponse getWeatherWithAdvice(String city, String username) {
+        String events = "";
+        if (username != null) {
+            Account account = accountRepository.findByUsername(username).orElse(null);
+            if (account != null) {
+                events = calendarService.getTodaysEvents(account);
+            }
+        }
+        final String finalCalendarEvents = events;
 
-        // 1. Đổi sang gọi hàm lấy Dự báo 3 ngày
         return weatherService.getWeatherForecast(city)
                 .flatMap(weatherData -> {
                     WeatherApiResponse.CurrentDto current = weatherData.getCurrent();
                     WeatherApiResponse.ForecastdayDto today = weatherData.getForecast().getForecastday().get(0);
 
-                    // 2. THUẬT TOÁN TÍNH TOÁN GIỜ THỰC TẾ
                     LocalDateTime now = LocalDateTime.now();
                     String compareString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00"));
 
@@ -45,8 +55,7 @@ public class WeatherFacadeService {
                             ))
                             .toList();
 
-                    // 3. MAP TOÀN BỘ DỮ LIỆU ĐỂ TRẢ VỀ CHO APP MOBILE
-                    return aiAdvisorService.getAdviceFromWeather(weatherData)
+                    return aiAdvisorService.getAdviceFromWeather(weatherData, finalCalendarEvents)
                             .map(advice -> new WeatherAdviceResponse(
                                     weatherData.getLocation().getName(),
                                     current.getTempC(),

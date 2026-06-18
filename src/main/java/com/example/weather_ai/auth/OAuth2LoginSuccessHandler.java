@@ -10,6 +10,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -26,10 +31,12 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final JwtUtils jwtUtils;
     private final StringRedisTemplate redisTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final OAuth2AuthorizedClientService authorizedClientService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+        OAuth2User oAuth2User = oauthToken.getPrincipal();
 
         String email = oAuth2User.getAttribute("email");
 
@@ -45,6 +52,28 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         if (!account.isActive()) {
             getRedirectStrategy().sendRedirect(request, response, "/oauth2-redirect?error=locked");
             return;
+        }
+
+        OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
+                oauthToken.getAuthorizedClientRegistrationId(),
+                oauthToken.getName());
+
+        if (client != null) {
+            OAuth2AccessToken googleAccessToken = client.getAccessToken();
+            OAuth2RefreshToken googleRefreshToken = client.getRefreshToken();
+
+            if (googleAccessToken != null) {
+                account.setGoogleAccessToken(googleAccessToken.getTokenValue());
+                if (googleAccessToken.getExpiresAt() != null) {
+                    account.setGoogleTokenExpiry(googleAccessToken.getExpiresAt().toEpochMilli());
+                }
+            }
+
+            if (googleRefreshToken != null) {
+                account.setGoogleRefreshToken(googleRefreshToken.getTokenValue());
+            }
+
+            accountRepository.save(account);
         }
 
         String accessToken = jwtUtils.generateTokenFromUsername(account.getUsername());
