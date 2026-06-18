@@ -12,6 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 public class WeatherAdviceResponse {
     private String cityName;
+    private Double lat;
+    private Double lon;
     private Double temperature;
     private String condition;
     private Double tempHigh;

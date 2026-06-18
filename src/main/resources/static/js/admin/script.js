@@ -299,3 +299,26 @@ window.deleteUser = async function(id, username) {
         }
     }
 };
+
+// QUẢN LÝ BẢNG TIN CỘNG ĐỒNG
+
+function deleteCommunityReport(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) return;
+
+    fetch(`/api/admin/community/${id}`, {
+        method: 'DELETE'
+    })
+        .then(res => res.json())
+        .then(json => {
+            if (json.success) {
+                alert('Đã xóa thành công!');
+                window.location.reload();
+            } else {
+                alert('Lỗi: ' + json.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi kết nối máy chủ!');
+        });
+}

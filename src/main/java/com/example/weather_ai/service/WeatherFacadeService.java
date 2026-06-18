@@ -58,6 +58,8 @@ public class WeatherFacadeService {
                     return aiAdvisorService.getAdviceFromWeather(weatherData, finalCalendarEvents)
                             .map(advice -> new WeatherAdviceResponse(
                                     weatherData.getLocation().getName(),
+                                    weatherData.getLocation().getLat(),
+                                    weatherData.getLocation().getLon(),
                                     current.getTempC(),
                                     current.getCondition().getText(),
                                     today.getDay().getMaxtempC(),
