@@ -303,22 +303,47 @@ window.deleteUser = async function(id, username) {
 // QUẢN LÝ BẢNG TIN CỘNG ĐỒNG
 
 function deleteCommunityReport(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) return;
+    Swal.fire({
+        title: 'Bạn có chắc chắn?',
+        text: "Bài viết này sẽ bị xóa và không thể khôi phục!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#8b5cf6',
+        confirmButtonText: '<i class="fa-solid fa-trash"></i> Vâng, xóa nó!',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Đang xử lý...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-    fetch(`/api/admin/community/${id}`, {
-        method: 'DELETE'
-    })
-        .then(res => res.json())
-        .then(json => {
-            if (json.success) {
-                alert('Đã xóa thành công!');
-                window.location.reload();
-            } else {
-                alert('Lỗi: ' + json.message);
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Lỗi kết nối máy chủ!');
-        });
+            fetch(`/api/admin/community/${id}`, {
+                method: 'DELETE'
+            })
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) {
+                        Swal.fire({
+                            title: 'Đã xóa!',
+                            text: 'Bài viết cộng đồng đã được xóa thành công.',
+                            icon: 'success',
+                            confirmButtonColor: '#8b5cf6'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', json.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Lỗi mạng!', 'Không thể kết nối đến máy chủ.', 'error');
+                });
+        }
+    });
 }
